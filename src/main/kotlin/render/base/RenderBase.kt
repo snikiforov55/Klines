@@ -18,8 +18,8 @@ abstract class RenderBase<S : ShapeInterface>(protected val gl: GL2) {
 
     // Use to access and set the view transformation
     protected var mMVPMatrixHandle: Int = 0
-    protected var mTranslateMatrix = FloatArray(16)
-    protected var mModelMatrix = FloatArray(16)
+    protected var mTranslateMatrix: Matrix4 = Matrix4()
+    protected var mModelMatrix : Matrix4 = Matrix4()
     open protected val vertexShaderCode =
                         "uniform mat4 uMVPMatrix;      \n" +
                         "attribute vec4 vPosition;     \n" +
@@ -115,19 +115,19 @@ abstract class RenderBase<S : ShapeInterface>(protected val gl: GL2) {
                 // Set color for drawing the triangle
                 gl.glUniform4fv(colorHandle, 1, shape.colorBuffer(), 0)
             }
-            Matrix.setIdentityM(mModelMatrix, 0)
-            Matrix.setIdentityM(mTranslateMatrix, 0)
-            Matrix.translateM(mTranslateMatrix,
-                0,
+            mModelMatrix.loadIdentity()
+            mTranslateMatrix.loadIdentity()
+            mTranslateMatrix.translate(
                 shape.shift().x.toFloat(),
                 shape.shift().y.toFloat(),
                 shape.shift().z.toFloat())
-            Matrix.multiplyMM(mModelMatrix,0, mvpMatrix, 0, mTranslateMatrix, 0)
+            mModelMatrix.multMatrix(mvpMatrix)
+            mModelMatrix.multMatrix(mTranslateMatrix)
 
             // get handle to shape's transformation matrix
             mMVPMatrixHandle = gl.glGetUniformLocation(mProgram, "uMVPMatrix").also{matrixHandle ->
                 // Pass the projection and view transformation to the shader
-                gl.glUniformMatrix4fv(matrixHandle, 1, false, mModelMatrix, 0)
+                gl.glUniformMatrix4fv(matrixHandle, 1, false, mModelMatrix.matrix, 0)
             }
             // Draw the triangle
             gl.glDrawArrays(GL_TRIANGLES, 0, shape.vertexCount())
