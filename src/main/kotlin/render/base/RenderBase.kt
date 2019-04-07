@@ -4,7 +4,10 @@ import com.jogamp.opengl.GL2ES2
 import com.jogamp.opengl.GLES2
 import com.jogamp.opengl.GLES3.*
 import com.jogamp.opengl.GL2
+import com.jogamp.opengl.GL3
 import com.jogamp.opengl.math.Matrix4
+import java.nio.ByteBuffer
+import java.nio.IntBuffer
 
 abstract class RenderBase<S : ShapeInterface>(protected val gl: GL2) {
 
@@ -48,8 +51,9 @@ abstract class RenderBase<S : ShapeInterface>(protected val gl: GL2) {
         return gl.glCreateShader(type).also { shader ->
             // add the source code to the shader and compile it
             val lines = arrayOf(shaderCode)
-            int[0] = lines[0].length
-            gl.glShaderSource(shader, 1, lines, int)
+            val l = IntBuffer.allocate(1)
+            l.put(0,lines[0].length)
+            gl.glShaderSource(shader, 1, lines, l)
 
             gl.glCompileShader(shader)
             val res = IntArray(1)
@@ -67,10 +71,8 @@ abstract class RenderBase<S : ShapeInterface>(protected val gl: GL2) {
 
          // create empty OpenGL ES Program
          mProgram = gl.glCreateProgram().also {
-
              // add the vertex shader to program
              gl.glAttachShader(it, vertexShader)
-
              // add the fragment shader to program
              gl.glAttachShader(it, fragmentShader)
              // creates OpenGL ES program executables
@@ -79,13 +81,23 @@ abstract class RenderBase<S : ShapeInterface>(protected val gl: GL2) {
              res[0] = 255
              gl.glGetProgramiv(it, GL_LINK_STATUS, res, 0)
              if(res[0] == 0){
-                 val log = gl.glGetProgramInfoLog(it)
+
+                 val log = getProgramInfoLog(it)
                  gl.glDeleteProgram(it)
                  mProgram = 0
                  println("Error link shader. " + log)
                  throw Exception("Error link shader " + log)
              }
          }
+    }
+    fun getProgramInfoLog(shader: Int): String {
+        val l = IntBuffer.allocate(1)
+        gl.glGetShaderiv(shader, GL2ES2.GL_INFO_LOG_LENGTH, l)
+        val infoLogLength = l[0]
+        val bufferInfoLog = ByteBuffer.allocate(infoLogLength)
+        gl.glGetProgramInfoLog(shader, infoLogLength, l, bufferInfoLog)
+        val bytes = ByteArray(infoLogLength)
+        return String(bytes)
     }
     fun useProgram(){
         mProgram.also {

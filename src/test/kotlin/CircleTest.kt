@@ -1,7 +1,7 @@
-package com.example.stnik.render
+package render
 
-import com.example.stnik.render.base.Point3D
-import com.example.stnik.render.shapes.Circle
+import render.shapes.Circle
+import render.base.Point3D
 import org.junit.Test
 
 class CircleTest {

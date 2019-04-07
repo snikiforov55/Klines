@@ -1,5 +1,6 @@
 package render.shapes
 
+import com.jogamp.opengl.GL2
 import render.base.Point3D
 import render.base.RenderBase
 import render.base.Shape
@@ -23,6 +24,6 @@ class Polygon : Shape {
     }
 }
 
-class PolygonRender : RenderBase<Polygon>() {
+class PolygonRender(gl: GL2) : RenderBase<Polygon>(gl) {
 
 }

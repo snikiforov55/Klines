@@ -1,5 +1,6 @@
 package render.shapes
 
+import com.jogamp.opengl.GL2
 import render.base.Point3D
 import render.base.RenderBase
 import render.base.Shape
@@ -20,6 +21,6 @@ class Triangle : Shape {
     }
 }
 
-class TriangleRender : RenderBase<Triangle>() {
+class TriangleRender(gl : GL2) : RenderBase<Triangle>(gl) {
 
 }

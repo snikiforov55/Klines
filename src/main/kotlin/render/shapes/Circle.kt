@@ -1,5 +1,6 @@
 package render.shapes
 
+import com.jogamp.opengl.GL2
 import com.jogamp.opengl.GL2ES2.*
 import com.jogamp.opengl.math.Matrix4
 import render.base.Point3D
@@ -36,7 +37,7 @@ class Circle( private var radius : Double, private var thickness : Double) : Sha
     }
 }
 
-class CircleRender : RenderBase<Circle>(){
+class CircleRender(gl: GL2) : RenderBase<Circle>(gl){
     /**
      * Vertex Shader
      */
@@ -115,13 +116,13 @@ class CircleRender : RenderBase<Circle>(){
         }
     override fun draw(mvpMatrix: FloatArray, shape : Circle) {
         // get handle to vertex shader's vPosition member
-        glGetAttribLocation(mProgram, "vPosition").also { pos ->
+        gl.glGetAttribLocation(mProgram, "vPosition").also { pos ->
 
             // Enable a handle to the triangle vertices
-            glEnableVertexAttribArray(pos)
+            gl.glEnableVertexAttribArray(pos)
 
             // Prepare the triangle coordinate data
-            glVertexAttribPointer(
+            gl.glVertexAttribPointer(
                 pos,
                 CoordsPerVertex,
                 GL_FLOAT,
@@ -129,13 +130,13 @@ class CircleRender : RenderBase<Circle>(){
                 vertexStride,
                 shape.vertexBuffer()
             )
-            glGetAttribLocation(mProgram, "a_TexCoordinate").also { th ->
+            gl.glGetAttribLocation(mProgram, "a_TexCoordinate").also { th ->
 
                 // Enable a handle to the triangle vertices
-                glEnableVertexAttribArray(th)
+                gl.glEnableVertexAttribArray(th)
 
                 // Prepare the triangle coordinate data
-                glVertexAttribPointer(
+                gl.glVertexAttribPointer(
                     th,
                     2,//CoordsPerVertex,
                     GL_FLOAT,
@@ -144,37 +145,36 @@ class CircleRender : RenderBase<Circle>(){
                     textureBuffer
                 )
                 // get handle to fragment shader's vColor member
-                mColorHandle = glGetUniformLocation(mProgram, "vColor").also { colorHandle ->
+                mColorHandle = gl.glGetUniformLocation(mProgram, "vColor").also { colorHandle ->
                     // Set color for drawing the triangle
-                    glUniform4fv(colorHandle, 1, shape.colorBuffer(), 0)
+                    gl.glUniform4fv(colorHandle, 1, shape.colorBuffer(), 0)
                 }
-                glGetUniformLocation(mProgram, "a_RadiusThickness").also { r ->
-                    glEnableVertexAttribArray(r)
-                    glUniform2f(r, shape.radius().toFloat(), shape.thickness().toFloat())
+                gl.glGetUniformLocation(mProgram, "a_RadiusThickness").also { r ->
+                    gl.glEnableVertexAttribArray(r)
+                    gl.glUniform2f(r, shape.radius().toFloat(), shape.thickness().toFloat())
                 }
-                Matrix.setIdentityM(mModelMatrix, 0)
-                Matrix.setIdentityM(mTranslateMatrix, 0)
-                Matrix.translateM(
-                    mTranslateMatrix,
-                    0,
+                mModelMatrix.loadIdentity()
+                mTranslateMatrix.loadIdentity()
+                mTranslateMatrix.translate(
                     shape.shift().x.toFloat(),
                     shape.shift().y.toFloat(),
                     shape.shift().z.toFloat()
                 )
-                Matrix.multiplyMM(mModelMatrix, 0, mvpMatrix, 0, mTranslateMatrix, 0)
+                mModelMatrix.multMatrix(mvpMatrix)
+                mModelMatrix.multMatrix(mTranslateMatrix)
 
                 // get handle to shape's transformation matrix
-                mMVPMatrixHandle = glGetUniformLocation(mProgram, "uMVPMatrix").also { matrixHandle ->
+                mMVPMatrixHandle = gl.glGetUniformLocation(mProgram, "uMVPMatrix").also { matrixHandle ->
                     // Pass the projection and view transformation to the shader
-                    glUniformMatrix4fv(matrixHandle, 1, false, mModelMatrix, 0)
+                    gl.glUniformMatrix4fv(matrixHandle, 1, false, mModelMatrix.matrix, 0)
                 }
-                glEnable(GL_BLEND)
-                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+                gl.glEnable(GL_BLEND)
+                gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
                 // Draw the triangle
-                glDrawArrays(GL_TRIANGLES, 0, shape.vertexCount())
+                gl.glDrawArrays(GL_TRIANGLES, 0, shape.vertexCount())
 
-                glDisableVertexAttribArray(th)
-                glDisableVertexAttribArray(pos)
+                gl.glDisableVertexAttribArray(th)
+                gl.glDisableVertexAttribArray(pos)
             }
         }
     }
