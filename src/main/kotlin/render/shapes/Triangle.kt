@@ -21,6 +21,6 @@ class Triangle : Shape {
     }
 }
 
-class TriangleRender(gl : GL2) : RenderBase<Triangle>(gl) {
+class TriangleRender() : RenderBase<Triangle>() {
 
 }

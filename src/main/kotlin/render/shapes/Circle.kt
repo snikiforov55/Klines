@@ -2,6 +2,7 @@ package render.shapes
 
 import com.jogamp.opengl.GL2
 import com.jogamp.opengl.GL2ES2.*
+import com.jogamp.opengl.GL3
 import com.jogamp.opengl.math.Matrix4
 import render.base.Point3D
 import render.base.RenderBase
@@ -37,7 +38,7 @@ class Circle( private var radius : Double, private var thickness : Double) : Sha
     }
 }
 
-class CircleRender(gl: GL2) : RenderBase<Circle>(gl){
+class CircleRender() : RenderBase<Circle>(){
     /**
      * Vertex Shader
      */
@@ -69,29 +70,30 @@ class CircleRender(gl: GL2) : RenderBase<Circle>(gl){
      * The filled circle is generated if Thickness < 0.0 or Thickness > Radius
      *
      */
-    override val fragmentShaderCode =
-        "precision mediump float;" +
-                "uniform vec4 vColor;" +
-                "varying vec2 v_TexCoordinate;" +
-                "varying  float v_Radius;"+
-                "varying  float v_Thickness;"+
-                "void main() {" +
-                "  float dist = distance(vec2(0.5, 0.5), v_TexCoordinate) / 0.5 * v_Radius;"+
-                "  float edgeWidth = max(v_Radius * 0.015, 0.005);"+
-                "  float outerEdge = smoothstep( -edgeWidth," +
-                "                                 0.0," +
-                "                                 dist - v_Radius" +
-                "                              );"+
-                "  float innerEdge = smoothstep(v_Thickness - edgeWidth," +
-                "                               v_Thickness," +
-                "                               v_Radius - dist" +
-                "                              );" +
-                "  innerEdge = v_Thickness < 0.0 ? 0.0 : innerEdge;"+
-                "  float a = 1.0 - outerEdge - innerEdge;"+
-                "  if(a <= 0.5) discard;"+
-                "  gl_FragColor = vColor;" +
-                "  gl_FragColor.a = a;" +
-                "}"
+    override val fragmentShaderCode ="""
+                //precision mediump float;
+                uniform vec4 vColor;
+                varying vec2 v_TexCoordinate;
+                varying  float v_Radius;
+                varying  float v_Thickness;
+                void main() {
+                  float dist = distance(vec2(0.5, 0.5), v_TexCoordinate) / 0.5 * v_Radius;
+                  float edgeWidth = max(v_Radius * 0.015, 0.005);
+                  float outerEdge = smoothstep( -edgeWidth,
+                                                 0.0,
+                                                 dist - v_Radius
+                                              );
+                  float innerEdge = smoothstep(v_Thickness - edgeWidth,
+                                               v_Thickness,
+                                               v_Radius - dist
+                                              );
+                  innerEdge = v_Thickness < 0.0 ? 0.0 : innerEdge;
+                  float a = 1.0 - outerEdge - innerEdge;
+                  if(a <= 0.5) discard;
+                  gl_FragColor = vColor;
+                  gl_FragColor.a = a;
+                }
+    """
 
     private val textureCoordinates = arrayOf(
         1.0f, 0.0f, // bottom right
@@ -114,7 +116,7 @@ class CircleRender(gl: GL2) : RenderBase<Circle>(gl){
                 position(0)
             }
         }
-    override fun draw(mvpMatrix: FloatArray, shape : Circle) {
+    override fun draw(gl : GL2, mvpMatrix: FloatArray, shape : Circle) {
         // get handle to vertex shader's vPosition member
         gl.glGetAttribLocation(mProgram, "vPosition").also { pos ->
 

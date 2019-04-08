@@ -1,15 +1,14 @@
 package render.base
 
-import com.jogamp.opengl.GL2ES2
-import com.jogamp.opengl.GLES2
-import com.jogamp.opengl.GLES3.*
+
 import com.jogamp.opengl.GL2
+import com.jogamp.opengl.GLES3.*
 import com.jogamp.opengl.GL3
 import com.jogamp.opengl.math.Matrix4
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
 
-abstract class RenderBase<S : ShapeInterface>(protected val gl: GL2) {
+abstract class RenderBase<S : ShapeInterface>() {
 
     protected   var mProgram: Int =0
     var vertexShader: Int = 0
@@ -23,27 +22,28 @@ abstract class RenderBase<S : ShapeInterface>(protected val gl: GL2) {
     protected var mMVPMatrixHandle: Int = 0
     protected var mTranslateMatrix: Matrix4 = Matrix4()
     protected var mModelMatrix : Matrix4 = Matrix4()
-    open protected val vertexShaderCode =
-                        "uniform mat4 uMVPMatrix;      \n" +
-                        "attribute vec4 vPosition;     \n" +
-                        "void main() {" +
-                        "  gl_Position = uMVPMatrix * vPosition;" +
-                        "}"
+    open protected val vertexShaderCode = """
+        uniform mat4 uMVPMatrix;
+        attribute vec4 vPosition;
+        void main() {
+            gl_Position = uMVPMatrix * vPosition;
+        }
 
-    open protected val fragmentShaderCode ="""
-        precision mediump float;
+    """
+    open protected val fragmentShaderCode = """
+        //precision mediump float;
         uniform vec4 vColor;
-        //varying zec4 v_Color;
         void main() {
           gl_FragColor = vColor;
         }
-    """.trimIndent()
+
+        """
 
     init{
         //Matrix4.setIdentityM(mModelMatrix, 0)
     }
 
-    private fun loadShader(type: Int, shaderCode: String): Int {
+    private fun loadShader(gl: GL2, type: Int, shaderCode: String): Int {
 
         // create a vertex shader type (GLES20.GL_VERTEX_SHADER)
         // or a fragment shader type (GLES20.GL_FRAGMENT_SHADER)
@@ -59,15 +59,16 @@ abstract class RenderBase<S : ShapeInterface>(protected val gl: GL2) {
             val res = IntArray(1)
             gl.glGetShaderiv(shader, GL_COMPILE_STATUS, res, 0)
             if(res[0] == 0){
-                println("Error compile shader: ")
+                print("Error compile shader: ")
+                println(res[0])
                 println(shaderCode)
                 throw Exception("Error compile shader")
             }
         }
     }
-    fun doInit() {
-         val vertexShader:   Int = loadShader(GL_VERTEX_SHADER, vertexShaderCode)
-         val fragmentShader: Int = loadShader(GL_FRAGMENT_SHADER, fragmentShaderCode)
+    fun doInit(gl: GL2) {
+         val vertexShader:   Int = loadShader(gl, GL_VERTEX_SHADER, vertexShaderCode)
+         val fragmentShader: Int = loadShader(gl, GL_FRAGMENT_SHADER, fragmentShaderCode)
 
          // create empty OpenGL ES Program
          mProgram = gl.glCreateProgram().also {
@@ -82,7 +83,7 @@ abstract class RenderBase<S : ShapeInterface>(protected val gl: GL2) {
              gl.glGetProgramiv(it, GL_LINK_STATUS, res, 0)
              if(res[0] == 0){
 
-                 val log = getProgramInfoLog(it)
+                 val log = getProgramInfoLog(gl, it)
                  gl.glDeleteProgram(it)
                  mProgram = 0
                  println("Error link shader. " + log)
@@ -90,22 +91,22 @@ abstract class RenderBase<S : ShapeInterface>(protected val gl: GL2) {
              }
          }
     }
-    fun getProgramInfoLog(shader: Int): String {
+    fun getProgramInfoLog(gl: GL2, shader: Int): String {
         val l = IntBuffer.allocate(1)
-        gl.glGetShaderiv(shader, GL2ES2.GL_INFO_LOG_LENGTH, l)
+        gl.glGetShaderiv(shader, GL2.GL_INFO_LOG_LENGTH, l)
         val infoLogLength = l[0]
         val bufferInfoLog = ByteBuffer.allocate(infoLogLength)
         gl.glGetProgramInfoLog(shader, infoLogLength, l, bufferInfoLog)
         val bytes = ByteArray(infoLogLength)
         return String(bytes)
     }
-    fun useProgram(){
+    fun useProgram(gl : GL2){
         mProgram.also {
             // Add program to OpenGL ES environment
             gl.glUseProgram(mProgram)
         }
     }
-    open fun draw(mvpMatrix: FloatArray, shape : S) {
+    open fun draw(gl : GL2, mvpMatrix: FloatArray, shape : S) {
 
         // get handle to vertex shader's vPosition member
         gl.glGetAttribLocation(mProgram, "vPosition").also {

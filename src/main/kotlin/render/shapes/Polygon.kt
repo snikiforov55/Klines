@@ -24,6 +24,6 @@ class Polygon : Shape {
     }
 }
 
-class PolygonRender(gl: GL2) : RenderBase<Polygon>(gl) {
+class PolygonRender() : RenderBase<Polygon>() {
 
 }
