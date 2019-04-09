@@ -56,10 +56,10 @@ class Viewer : GLEventListener, KeyListener {
             4.0)
     )
     private val circles = arrayOf(
-        Circle(0.6, 0.08, Color4F(0.5f, 0.2f, 0.8f, 1.0f), 4.0),
-        Circle(Point3D(-0.03,-0.03, 0.0),0.6, 0.08, Color4F(0.5f, 0.2f, 0.6f, 1.0f), 3.0),
-        Circle(Point3D(-0.06,-0.06, 0.0),0.6, 0.08, Color4F(0.5f, 0.2f, 0.4f, 1.0f), 2.0),
-        Circle(Point3D(-0.06,-0.09, 0.0),0.6, 0.08, Color4F(0.5f, 0.2f, 0.2f, 1.0f), 1.0)
+        Circle(0.1, 0.08, Color4F(0.5f, 0.2f, 0.8f, 1.0f), 4.0),
+        Circle(Point3D(-0.03,-0.03, 0.0),0.1, 0.08, Color4F(0.5f, 0.2f, 0.6f, 1.0f), 3.0),
+        Circle(Point3D(-0.06,-0.06, 0.0),0.1, 0.08, Color4F(0.5f, 0.2f, 0.4f, 1.0f), 2.0),
+        Circle(Point3D(-0.09,-0.09, 0.0),0.1, 0.08, Color4F(0.5f, 0.2f, 0.2f, 1.0f), 1.0)
     )
     private var shift_x : Double = 0.0
     private var shift_y : Double = 0.0

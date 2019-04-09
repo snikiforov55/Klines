@@ -50,7 +50,7 @@ class CircleRender() : RenderBase<Circle>(){
                 varying  float v_Thickness;
                 void main() {
                   float dist = distance(vec2(0.5, 0.5), v_TexCoordinate) / 0.5 * v_Radius;
-                  float edgeWidth = max(v_Radius * 0.015, 0.005);
+                  float edgeWidth = max(v_Radius * 0.008, 0.005);
                   float outerEdge = smoothstep( -edgeWidth,
                                                  0.0,
                                                  dist - v_Radius

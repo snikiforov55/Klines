@@ -48,6 +48,9 @@ abstract class Shape : ShapeInterface {
     override fun setColor(r: Float, g: Float, b: Float, a: Float){
         color = floatArrayOf(r, g, b, a)
     }
+    override fun setColor(_color : Color4F){
+        color = floatArrayOf(_color.r, _color.g, _color.b, _color.a)
+    }
 }
 
 
