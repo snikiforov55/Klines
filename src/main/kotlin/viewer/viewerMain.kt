@@ -4,9 +4,16 @@ import com.jogamp.newt.event.KeyEvent
 import com.jogamp.newt.event.KeyListener
 import com.jogamp.newt.opengl.GLWindow
 import com.jogamp.opengl.*
+import com.jogamp.opengl.math.Matrix4
 import com.jogamp.opengl.util.Animator
+import render.base.Color4F
+import render.base.Point3D
+import render.shapes.Circle
 import render.shapes.CircleRender
+import render.shapes.Triangle
 import render.shapes.TriangleRender
+import kotlin.math.min
+import kotlin.math.max
 
 
 fun main(args: Array<String>) {
@@ -17,12 +24,49 @@ class Viewer : GLEventListener, KeyListener {
 
     private val window = GLWindow.create(GLCapabilities(GLProfile.get(GLProfile.GL2)))
     private val animator = Animator(window)
-    private var triangleRender = TriangleRender()
-    private var circleRender   = CircleRender()
+    private val triangleRender = TriangleRender()
+    private val circleRender   = CircleRender()
+    private val mProjectionMatrix = Matrix4()
+    private val mViewMatrix       = Matrix4()
+    private val mMVPMatrix        = Matrix4()
+    private val triangles : Array<Triangle> = arrayOf(
+        Triangle(Point3D(0.50, 0.50, 0.0),
+            Point3D(-0.2,-0.1, 0.0),
+            Point3D( 0.0, 0.3, 0.0),
+            Point3D( 0.2,-0.1, 0.0),
+            Color4F( 0.8f,0.1f,0.1f,1.0f),
+            1.0),
+        Triangle(Point3D(0.48, 0.48, 0.0),
+            Point3D(-0.2,-0.1, 0.0),
+            Point3D( 0.0, 0.3, 0.0),
+            Point3D( 0.2,-0.1, 0.0),
+            Color4F( 0.5f,0.1f,0.1f,1.0f),
+            2.0),
+        Triangle(Point3D(0.46, 0.46, 0.0),
+            Point3D(-0.2,-0.1, 0.0),
+            Point3D( 0.0, 0.3, 0.0),
+            Point3D( 0.2,-0.1, 0.0),
+            Color4F( 0.3f,0.1f,0.1f,1.0f),
+            3.0),
+        Triangle(Point3D(0.44, 0.44, 0.0),
+            Point3D(-0.2,-0.1, 0.0),
+            Point3D( 0.0, 0.3, 0.0),
+            Point3D( 0.2,-0.1, 0.0),
+            Color4F( 0.15f,0.1f,0.1f,1.0f),
+            4.0)
+    )
+    private val circles = arrayOf(
+        Circle(0.6, 0.08, Color4F(0.5f, 0.2f, 0.8f, 1.0f), 4.0),
+        Circle(Point3D(-0.03,-0.03, 0.0),0.6, 0.08, Color4F(0.5f, 0.2f, 0.6f, 1.0f), 3.0),
+        Circle(Point3D(-0.06,-0.06, 0.0),0.6, 0.08, Color4F(0.5f, 0.2f, 0.4f, 1.0f), 2.0),
+        Circle(Point3D(-0.06,-0.09, 0.0),0.6, 0.08, Color4F(0.5f, 0.2f, 0.2f, 1.0f), 1.0)
+    )
+    private var shift_x : Double = 0.0
+    private var shift_y : Double = 0.0
 
     init {
         with(window) {
-            setSize(1024, 768); setPosition(100, 50)
+            setSize(800, 800); setPosition(100, 50)
             isUndecorated = false; isAlwaysOnTop = false; isFullscreen = false; isPointerVisible = true
             confinePointer(false); title = "hello"; contextCreationFlags = GLContext.CTX_OPTION_DEBUG; isVisible = true
             addGLEventListener(this@Viewer)
@@ -37,12 +81,11 @@ class Viewer : GLEventListener, KeyListener {
         start = System.currentTimeMillis()
         // Set the background frame color
         gl.glClearColor(0.2f, 0.2f, 0.2f, 1.0f)
-//      // Use culling to remove back faces.
-//        gl.glEnable(GLES2.GL_CULL_FACE)
-//        gl.glEnable(GLES2.GL_BLEND)
-//        gl.glEnable(GLES2.GL_DEPTH_TEST)
-//        gl.glBlendFunc(GLES2.GL_SRC_ALPHA, GLES2.GL_ONE_MINUS_SRC_ALPHA)
-//
+        // Use culling to remove back faces.
+        gl.glEnable(GLES2.GL_CULL_FACE)
+        gl.glEnable(GLES2.GL_DEPTH_TEST)
+        gl.glEnable(GLES2.GL_BLEND)
+        gl.glBlendFunc(GLES2.GL_SRC_ALPHA, GLES2.GL_ONE_MINUS_SRC_ALPHA)
         triangleRender.doInit(gl)
         circleRender.doInit(gl)
     }
@@ -80,52 +123,21 @@ class Viewer : GLEventListener, KeyListener {
 //    }
 
     override fun display(drawable: GLAutoDrawable): Unit {
-        with(drawable.gl.gL2) {
-        // Set Background color
-        glClearColor(0.4f, 0.8f, 0.2f, 1.0f)
-        // Redraw background color
-        glClear(GL2.GL_DEPTH_BUFFER_BIT or GL2.GL_COLOR_BUFFER_BIT)
-//
-//        //triangleRender.useProgram()
-//        //triangleRender.draw(mMVPMatrix, ballModel.triangle)
-//        //triangleRender.draw(mMVPMatrix, ballModel.triangle1)
-//
-//        circleRender.useProgram()
-//        circleRender.draw(mMVPMatrix, ballModel.left())
-//        circleRender.draw(mMVPMatrix, ballModel.right())
-//        //circleRender.draw(mMVPMatrix, ballModel.circle)
+        val gl = drawable.gl.gL2
+        with(gl) {
+            // Set Background color
+            glClearColor(0.2f, 0.2f, 0.2f, 1.0f)
+            // Redraw background color
+            glClear(GL2.GL_DEPTH_BUFFER_BIT or GL2.GL_COLOR_BUFFER_BIT)
 
+            triangleRender.useProgram(gl)
+            triangles.forEach { t -> triangleRender.draw(gl = gl, mvpMatrix = mMVPMatrix.matrix, shape = t) }
 
-//
-
-//
-//            run {
-//                // update matrix based on time
-//                var now = System.currentTimeMillis()
-//                val diff = (now - start) / 1000f
-//                /**
-//                 * Here we build the matrix that will multiply our original vertex
-//                 * positions. We scale, halving it, and rotate it.
-//                 */
-//                scale = FloatUtil.makeScale(scale, true, 0.5f, 0.5f, 0.5f)
-//                zRotation = FloatUtil.makeRotationEuler(zRotation, 0, 0f, 0f, diff)
-//                modelToClip = FloatUtil.multMatrix(scale, zRotation)
-//
-//                transformPointer.asFloatBuffer().put(modelToClip)
-//            }
-//            glUseProgram(programName)
-//            glBindVertexArray(vertexArrayName.get(0))
-//
-//            glBindBufferBase(
-//                GL_UNIFORM_BUFFER, // Target
-//                Semantic.Uniform.TRANSFORM0, // index
-//                bufferName.get(Buffer.TRANSFORM)) // buffer
-//
-//            glDrawElements(
-//                GL_TRIANGLES, // primitive mode
-//                elementCount, // element count
-//                GL_UNSIGNED_SHORT, // element type
-//                0) // element offset}
+            circleRender.useProgram(gl)
+            circles.forEach { c ->
+                val sh = c.shift()
+                c.move(Point3D(sh.x + shift_x, sh.y + shift_y, sh.z))
+                circleRender.draw(gl = gl, mvpMatrix = mMVPMatrix.matrix, shape = c) }
         }
     }
 
@@ -137,23 +149,27 @@ class Viewer : GLEventListener, KeyListener {
              * projection matrix.
              */
             glViewport(x, y, width, height)
+            //val clamp = max(_min, min(_v, _max))
 
-//            val ratio = MathUtils.clamp(_width.toFloat(), 0.0001F, Float.MAX_VALUE) /
-//                    MathUtils.clamp(_height.toFloat(), 0.0001F, Float.MAX_VALUE)
-//
-//            // this projection matrix is applied to object coordinates
-//            // in the onDrawFrame() method
-//            //Matrix.frustumM(mProjectionMatrix, 0, -ratio, ratio, -1f, 1f, 1f, 3f)
-//            Matrix.orthoM(mProjectionMatrix, 0, -ratio, ratio, -1f, 1f, 0.1f, 100.0f)
-//            // Set the camera position (View matrix)
-//            Matrix.setLookAtM(mViewMatrix, 0,
+            val ratio = max(0.001f, min(width.toFloat(), Float.MAX_VALUE)) /
+                        max(0.001f, min(height.toFloat(), Float.MAX_VALUE))
+
+            // this projection matrix is applied to object coordinates
+            // in the onDrawFrame() method
+            mProjectionMatrix.loadIdentity()
+            mProjectionMatrix.makeOrtho(-1f, 1f, -1f, 1f, 0.0f, 100.0f)
+            // Set the camera position (View matrix)
+//            mViewMatrix.setLookAtM(
 //                0f, 0f, 10.1f,
 //                0f, 0f, 0f,
 //                0f, 1.0f, 0.0f)
-//
-//            // Calculate the projection and view transformation
-//            Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0)
-//            ballModel.reshape(_width.toFloat(), _height.toFloat(), ratio)
+            mViewMatrix.loadIdentity()
+            mViewMatrix.rotate(kotlin.math.PI.toFloat(), 0.0f, 1.0f, 0.0f)
+            mViewMatrix.translate(0.0f, 0.0f, 10.0f)
+            // Calculate the projection and view transformation
+            mMVPMatrix.loadIdentity()
+            mMVPMatrix.multMatrix(mProjectionMatrix)
+            mMVPMatrix.multMatrix(mViewMatrix)
         }
     }
 
@@ -183,8 +199,13 @@ class Viewer : GLEventListener, KeyListener {
             animator.remove(window)
             window.destroy()
         }
+        if(e.keyCode === KeyEvent.VK_LEFT){
+            shift_x -= 0.01
+        }
+        if(e.keyCode === KeyEvent.VK_RIGHT){
+            shift_x += 0.01
+        }
     }
-
     override fun keyReleased(e: KeyEvent) {
     }
 }

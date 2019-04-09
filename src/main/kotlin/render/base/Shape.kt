@@ -16,6 +16,7 @@ abstract class Shape : ShapeInterface {
     protected var origin : Point3D = Point3D(0.0, 0.0, 0.0)
     protected var shift  : Point3D = Point3D(0.0, 0.0, 0.0)
     protected var color    = floatArrayOf(0.63671875f, 0.76953125f, 0.22265625f, 1.0f)
+    protected var layer  = 0.0
 
     private lateinit var vertexBuffer : FloatBuffer
     protected abstract val points : Array<Point3D>
@@ -44,8 +45,7 @@ abstract class Shape : ShapeInterface {
     }
     override fun bufferSizeFloat() : Int = points.size*3
     override fun vertexCount() : Int = points.size
-
-    fun setColor(r: Float, g: Float, b: Float, a: Float){
+    override fun setColor(r: Float, g: Float, b: Float, a: Float){
         color = floatArrayOf(r, g, b, a)
     }
 }

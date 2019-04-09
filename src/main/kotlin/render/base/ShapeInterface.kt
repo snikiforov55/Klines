@@ -11,4 +11,5 @@ interface ShapeInterface {
     fun vertexBuffer() : FloatBuffer
     fun vertexCount() : Int
     fun colorBuffer() : FloatArray
+    fun setColor(r: Float, g: Float, b: Float, a: Float)
 }

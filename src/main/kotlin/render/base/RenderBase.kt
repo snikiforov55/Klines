@@ -4,6 +4,7 @@ package render.base
 import com.jogamp.opengl.GL2
 import com.jogamp.opengl.GLES3.*
 import com.jogamp.opengl.GL3
+import com.jogamp.opengl.GLES2
 import com.jogamp.opengl.math.Matrix4
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
@@ -142,9 +143,12 @@ abstract class RenderBase<S : ShapeInterface>() {
                 // Pass the projection and view transformation to the shader
                 gl.glUniformMatrix4fv(matrixHandle, 1, false, mModelMatrix.matrix, 0)
             }
+            gl.glEnable(GLES2.GL_CULL_FACE)
+            gl.glEnable(GLES2.GL_DEPTH_TEST)
+            gl.glEnable(GLES2.GL_BLEND)
+            gl.glBlendFunc(GLES2.GL_SRC_ALPHA, GLES2.GL_ONE_MINUS_SRC_ALPHA)
             // Draw the triangle
             gl.glDrawArrays(GL_TRIANGLES, 0, shape.vertexCount())
-
             // Disable vertex array
             gl.glDisableVertexAttribArray(it)
         }

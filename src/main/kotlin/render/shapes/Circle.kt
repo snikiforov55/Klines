@@ -2,41 +2,13 @@ package render.shapes
 
 import com.jogamp.opengl.GL2
 import com.jogamp.opengl.GL2ES2.*
-import com.jogamp.opengl.GL3
-import com.jogamp.opengl.math.Matrix4
+import com.jogamp.opengl.GLES2
+import render.base.Color4F
 import render.base.Point3D
 import render.base.RenderBase
 import render.base.Shape
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-
-class Circle( private var radius : Double, private var thickness : Double) : Shape(){
-    override var points : Array<Point3D> =  arrayOf(
-        Point3D(radius, -radius, 0.0), // bottom right
-        Point3D(-radius, radius, 0.0), // top left
-        Point3D(-radius, -radius, 0.0), // bottom left
-        Point3D(radius, -radius, 0.0), // bottom right
-        Point3D(radius, radius, 0.0), // top right
-        Point3D(-radius, radius, 0.0)  // top left
-    )
-    init{
-        doInit()
-    }
-    fun thickness() : Double = thickness
-    fun radius() : Double = radius
-    fun setRadius(_r : Double){
-        radius = _r
-        points = arrayOf(
-            Point3D(radius, -radius, 0.0), // bottom right
-            Point3D(-radius, radius, 0.0), // top left
-            Point3D(-radius, -radius, 0.0), // bottom left
-            Point3D(radius, -radius, 0.0), // bottom right
-            Point3D(radius, radius, 0.0), // top right
-            Point3D(-radius, radius, 0.0)  // top left
-        )
-        doInit()
-    }
-}
 
 class CircleRender() : RenderBase<Circle>(){
     /**
@@ -89,19 +61,19 @@ class CircleRender() : RenderBase<Circle>(){
                                               );
                   innerEdge = v_Thickness < 0.0 ? 0.0 : innerEdge;
                   float a = 1.0 - outerEdge - innerEdge;
-                  if(a <= 0.5) discard;
+                  // --- with proper sorting it is not needed :) if(a <= 0.5) discard;
                   gl_FragColor = vColor;
                   gl_FragColor.a = a;
                 }
     """
 
     private val textureCoordinates = arrayOf(
-        1.0f, 0.0f, // bottom right
+        0.0f, 0.0f, // bottom right
         0.0f, 1.0f, // top left
-        0.0f, 0.0f, // bottom left
+        1.0f, 0.0f, // bottom left
         1.0f, 0.0f, // bottom right
-        1.0f, 1.0f, // top right
-        0.0f, 1.0f  // top left
+        0.0f, 1.0f, // top right
+        1.0f, 1.0f  // top left
     )
     private val textureBuffer  = // (number of coordinate values * 4 bytes per float)
         ByteBuffer.allocateDirect(textureCoordinates.size * 4).run {
@@ -172,12 +144,58 @@ class CircleRender() : RenderBase<Circle>(){
                 }
                 gl.glEnable(GL_BLEND)
                 gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+                gl.glEnable(GLES2.GL_CULL_FACE)
+                gl.glEnable(GLES2.GL_DEPTH_TEST)
                 // Draw the triangle
                 gl.glDrawArrays(GL_TRIANGLES, 0, shape.vertexCount())
-
                 gl.glDisableVertexAttribArray(th)
                 gl.glDisableVertexAttribArray(pos)
             }
         }
+    }
+}
+
+class Circle : Shape{
+    private var radius      : Double = 1.0
+    private var thickness   : Double = 1.0
+
+    override var points : Array<Point3D> =  arrayOf(
+        Point3D(-radius, -radius, 0.0), // bottom right
+        Point3D(-radius, radius, 0.0), // top left
+        Point3D( radius, -radius, 0.0), // bottom left
+        Point3D( radius, -radius, 0.0), // bottom right
+        Point3D(-radius, radius, 0.0), // top right
+        Point3D( radius, radius, 0.0)  // top left
+    )
+    init {
+        doInit()
+    }
+    constructor(_radius : Double, _thickness : Double, _color : Color4F = Color4F(), _layer : Double = 0.0){
+        thickness = _thickness
+        layer = _layer
+        setRadius(_radius)
+        setColor(_color.r, _color.g, _color.b, _color.a)
+
+    }
+    constructor(sh : Point3D, _radius : Double, _thickness : Double, _color : Color4F = Color4F(), _layer : Double = 0.0){
+        thickness = _thickness
+        layer = _layer
+        shift = sh
+        setRadius(_radius)
+        setColor(_color.r, _color.g, _color.b, _color.a)
+    }
+    fun thickness() : Double = thickness
+    fun radius() : Double = radius
+    fun setRadius(_r : Double){
+        radius = _r
+        points = arrayOf(
+            Point3D(-radius, -radius, layer), // bottom right
+            Point3D(-radius, radius, layer), // top left
+            Point3D( radius, -radius, layer), // bottom left
+            Point3D( radius, -radius, layer), // bottom right
+            Point3D(-radius, radius, layer), // top right
+            Point3D( radius, radius, layer)  // top left
+        )
+        doInit()
     }
 }
