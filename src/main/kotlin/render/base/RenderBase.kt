@@ -1,6 +1,7 @@
 package render.base
 
 
+import com.jogamp.opengl.GL
 import com.jogamp.opengl.GL2
 import com.jogamp.opengl.GLES3.*
 import com.jogamp.opengl.GL3
@@ -147,6 +148,7 @@ abstract class RenderBase<S : ShapeInterface>() {
             gl.glEnable(GLES2.GL_DEPTH_TEST)
             gl.glEnable(GLES2.GL_BLEND)
             gl.glBlendFunc(GLES2.GL_SRC_ALPHA, GLES2.GL_ONE_MINUS_SRC_ALPHA)
+            gl.glFrontFace(GL.GL_CW)
             // Draw the triangle
             gl.glDrawArrays(GL_TRIANGLES, 0, shape.vertexCount())
             // Disable vertex array

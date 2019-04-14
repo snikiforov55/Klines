@@ -1,8 +1,11 @@
 package render.shapes
 
+import com.jogamp.opengl.GL.GL_CCW
+import com.jogamp.opengl.GL.GL_CW
 import com.jogamp.opengl.GL2
 import com.jogamp.opengl.GL2ES2
 import com.jogamp.opengl.GLES2
+import com.jogamp.opengl.math.Matrix4
 import render.base.Color4F
 import render.base.Point3D
 import render.base.RenderBase
@@ -11,87 +14,76 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.*
 
-class LineRender() : RenderBase<Line>(){
+class LineRender : RenderBase<Line>(){
     /**
      * Vertex Shader
      */
-    override val vertexShaderCode =
-        "uniform mat4 uMVPMatrix;      \n" +
-                "attribute vec4 vPosition;     \n" +
-                "attribute vec2 a_TexCoordinate; \n" +
-                "uniform   vec2 a_RadiusThickness;"+
-                "varying   vec2 v_TexCoordinate;" +
-                "varying  float v_Radius;"+
-                "varying  float v_Thickness;"+
-                "void main() {" +
-                "   v_Radius    = a_RadiusThickness.x;"+
-                "   v_Thickness = a_RadiusThickness.y;"+
-                "  v_TexCoordinate = a_TexCoordinate;" +
-                "  gl_Position = uMVPMatrix * vPosition;" +
-                "}"
-
+    override val vertexShaderCode ="""
+        uniform mat4 uMVPMatrix;
+        attribute vec4 vPosition;
+        attribute vec2 a_TexCoordinate;
+        uniform   vec2 a_RadiusThickness;
+        varying   vec2 v_TexCoordinate;
+        varying  float v_Radius;
+        varying  float v_Thickness;
+        void main() {
+            v_Radius    = a_RadiusThickness.x;
+            v_Thickness = a_RadiusThickness.y;
+            v_TexCoordinate = a_TexCoordinate;
+            gl_Position = uMVPMatrix * vPosition;
+        }
+    """
     /**
      * Fragment shader
      *
-     *
-     * Antialiasing and thickness of the ring are provided by a combination of edges.
-     * Inner edge:     __________________
-     *             ___/
-     *                | thickness |______
-     * Outer edge: _______________/
-     *
-     * The filled circle is generated if Thickness < 0.0 or Thickness > Radius
-     *
      */
     override val fragmentShaderCode ="""
-                //precision mediump float;
                 uniform vec4 vColor;
                 varying vec2 v_TexCoordinate;
                 varying  float v_Radius;
                 varying  float v_Thickness;
                 void main() {
-                  //float dist = distance(vec2(0.5, 0.5), v_TexCoordinate) / 0.5 * v_Radius;
-                  //float edgeWidth = max(v_Radius * 0.008, 0.005);
-                  //float outerEdge = smoothstep( -edgeWidth,
-                  //                               0.0,
-                  //                               dist - v_Radius
-                  //                            );
-                  //float innerEdge = smoothstep(v_Thickness - edgeWidth,
-                  //                             v_Thickness,
-                  //                             v_Radius - dist
-                  //                            );
-                  //innerEdge = v_Thickness < 0.0 ? 0.0 : innerEdge;
-                  //float a = 1.0 - outerEdge - innerEdge;
-                  vec4 c;
-                  c = (v_TexCoordinate.y < 0.25) ? vec4(1.0, 0.0, 0.0, 1.0) : vColor;
-                  c = (v_TexCoordinate.y > 0.75) ? vec4(0.0, 0.0, 0.4, 1.0) : c;
-                  gl_FragColor = c;
-                  //gl_FragColor.a = a;
+                  float radius = 0.125;
+                  float distTop    = distance(vec2(0.125, 0.875), v_TexCoordinate);
+                  float distBottom = distance(vec2(0.125, 0.125), v_TexCoordinate);
+                  float delta = 0.1*radius;
+
+                  float alphaMainLeft  = smoothstep(0.0, delta, v_TexCoordinate.x);
+                  float alphaMainRight = 1.0 - smoothstep(delta, 0.0, 0.25 - v_TexCoordinate.x);
+                  float alphaTop       = smoothstep(0.0, delta, radius - distTop);
+                  float alphaBottom    = smoothstep(0.0, delta, radius - distBottom);
+
+                  float alpha   = (v_TexCoordinate.x <= 0.125) ? alphaMainLeft  : alphaMainRight;
+                  alpha         = (v_TexCoordinate.y >  0.875 ) ? alphaTop       : alpha;
+                  alpha         = (v_TexCoordinate.y <  0.125 ) ? alphaBottom    : alpha;
+
+                  gl_FragColor   = vColor;
+                  gl_FragColor.a = alpha;
                 }
     """
 
     private val textureCoordinates = arrayOf(
          // Top
-         0.0f, 0.75f, // bottom left
-         0.0f, 1.00f, // top left
-        0.25f, 0.75f, // bottom right
-        0.25f, 0.75f, // bottom right
-         0.0f, 1.00f, // top left
-        0.25f, 1.00f, // top right
+         0.0f, 0.875f, // bottom left
+         0.0f, 1.000f, // top left
+        0.25f, 0.875f, // bottom right
+        0.25f, 0.875f, // bottom right
+         0.0f, 1.000f, // top left
+        0.25f, 1.000f, // top right
          // Main
-         0.0f, 0.25f, // bottom left
-         0.0f, 0.75f, // top left
-        0.25f, 0.25f, // bottom right
-        0.25f, 0.25f, // bottom right
-         0.0f, 0.75f, // top left
-        0.25f, 0.75f, // top right
+         0.0f, 0.125f, // bottom left
+         0.0f, 0.875f, // top left
+        0.25f, 0.125f, // bottom right
+        0.25f, 0.125f, // bottom right
+         0.0f, 0.875f, // top left
+        0.25f, 0.875f, // top right
         // bottom
-         0.0f,  0.0f, // bottom left
-         0.0f, 0.25f, // top left
-        0.25f,  0.0f, // bottom right
-        0.25f,  0.0f, // bottom right
-         0.0f, 0.25f, // top left
-        0.25f, 0.25f  // top right
+         0.0f, 0.000f, // bottom left
+         0.0f, 0.125f, // top left
+        0.25f, 0.000f, // bottom right
+        0.25f, 0.000f, // bottom right
+         0.0f, 0.125f, // top left
+        0.25f, 0.125f  // top right
 
     )
     private val textureBuffer  = // (number of coordinate values * 4 bytes per float)
@@ -124,10 +116,8 @@ class LineRender() : RenderBase<Line>(){
                 shape.vertexBuffer()
             )
             gl.glGetAttribLocation(mProgram, "a_TexCoordinate").also { th ->
-
                 // Enable a handle to the triangle vertices
                 gl.glEnableVertexAttribArray(th)
-
                 // Prepare the triangle coordinate data
                 gl.glVertexAttribPointer(
                     th,
@@ -147,10 +137,13 @@ class LineRender() : RenderBase<Line>(){
                     gl.glUniform2f(r, shape.r().toFloat(), shape.thickness().toFloat())
                 }
                 mModelMatrix.loadIdentity()
+                mModelMatrix.translate(shape.start().x.toFloat(),shape.start().y.toFloat(),0.0f)
+                mModelMatrix.rotate(shape.angleRad().toFloat(), 0.0f, 0.0f, 1.0f)
+
                 mTranslateMatrix.loadIdentity()
                 mTranslateMatrix.translate(
-                    shape.shift().x.toFloat(),
-                    shape.shift().y.toFloat(),
+                    shape.shift().x.toFloat(),// + shape.start().x.toFloat(),
+                    shape.shift().y.toFloat(),// + shape.start().y.toFloat(),
                     shape.shift().z.toFloat()
                 )
                 mModelMatrix.multMatrix(mvpMatrix)
@@ -165,6 +158,7 @@ class LineRender() : RenderBase<Line>(){
                 gl.glBlendFunc(GL2ES2.GL_SRC_ALPHA, GL2ES2.GL_ONE_MINUS_SRC_ALPHA)
                 gl.glEnable(GLES2.GL_CULL_FACE)
                 gl.glEnable(GLES2.GL_DEPTH_TEST)
+                gl.glFrontFace(GL_CW)
                 // Draw the triangle
                 gl.glDrawArrays(GL2ES2.GL_TRIANGLES, 0, shape.vertexCount())
                 gl.glDisableVertexAttribArray(th)
@@ -179,7 +173,8 @@ fun createLine(_startX: Double, _startY: Double, _endX : Double, _endY : Double,
 
     val r = max(0.001, sqrt( (_endX - _startX)*(_endX - _startX) + (_endY - _startY)*(_endY - _startY)))
     val thickness = min(r/2.0, _thickness)
-    val angle = acos((_endY - _startY)/r)
+    var angle = -acos((_endY - _startY)/r)
+    angle = if(_endX - _startX < 0.0){-angle}else{angle}
 
     val dx = thickness / 2.0
     val points = arrayOf(
@@ -205,7 +200,7 @@ fun createLine(_startX: Double, _startY: Double, _endX : Double, _endY : Double,
         Point3D(x = -dx, y =  0.0, z = _layer), // top right
         Point3D(x =  dx, y =  0.0, z = _layer)  // top left
     )
-    val l = Line(points, thickness, r, angle)
+    val l = Line(points, thickness, r, angle, Point3D(_startX, _startY, 0.0))
     l.setColor(_color)
     return l
 }
@@ -213,12 +208,14 @@ fun createLine(_startX: Double, _startY: Double, _endX : Double, _endY : Double,
 class Line(override val points : Array<Point3D>,
            private var thickness : Double = 0.01,
            private var r : Double = 0.1,
-           private var angle : Double = 0.0) : Shape() {
+           private var angle : Double = 0.0,
+           private var start : Point3D) : Shape() {
 
     fun thickness() = thickness
     fun r() = r
     fun angleRad() = angle
     fun angleDeg() = angle*180.0/PI
+    fun start() = start
 
     init {
         doInit()

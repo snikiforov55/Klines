@@ -30,38 +30,46 @@ class Viewer : GLEventListener, KeyListener {
     private val mMVPMatrix        = Matrix4()
     private val triangles : Array<Triangle> = arrayOf(
         Triangle(Point3D(0.50, 0.50, 0.0),
-            Point3D(-0.2,-0.1, 0.0),
+            Point3D(-0.2,-0.15, 0.0),
             Point3D( 0.0, 0.3, 0.0),
             Point3D( 0.2,-0.1, 0.0),
             Color4F( 0.8f,0.1f,0.1f,1.0f),
-            1.0),
+            4.0),
         Triangle(Point3D(0.48, 0.48, 0.0),
-            Point3D(-0.2,-0.1, 0.0),
+            Point3D(-0.2,-0.15, 0.0),
             Point3D( 0.0, 0.3, 0.0),
             Point3D( 0.2,-0.1, 0.0),
             Color4F( 0.5f,0.1f,0.1f,1.0f),
-            2.0),
+            3.0),
         Triangle(Point3D(0.46, 0.46, 0.0),
-            Point3D(-0.2,-0.1, 0.0),
+            Point3D(-0.2,-0.15, 0.0),
             Point3D( 0.0, 0.3, 0.0),
             Point3D( 0.2,-0.1, 0.0),
             Color4F( 0.3f,0.1f,0.1f,1.0f),
-            3.0),
+            2.0),
         Triangle(Point3D(0.44, 0.44, 0.0),
-            Point3D(-0.2,-0.1, 0.0),
+            Point3D(-0.2,-0.15, 0.0),
             Point3D( 0.0, 0.3, 0.0),
             Point3D( 0.2,-0.1, 0.0),
             Color4F( 0.15f,0.1f,0.1f,1.0f),
-            4.0)
+            1.0)
     )
     private val circles = arrayOf(
-        Circle(0.1, 0.08, Color4F(0.5f, 0.2f, 0.8f, 1.0f), 4.0),
-        Circle(Point3D(-0.03,-0.03, 0.0),0.1, 0.08, Color4F(0.5f, 0.2f, 0.6f, 1.0f), 3.0),
-        Circle(Point3D(-0.06,-0.06, 0.0),0.1, 0.08, Color4F(0.5f, 0.2f, 0.4f, 1.0f), 2.0),
-        Circle(Point3D(-0.09,-0.09, 0.0),0.1, 0.08, Color4F(0.5f, 0.2f, 0.2f, 1.0f), 1.0)
-    )
+        Circle(0.1, 0.08, Color4F(0.5f, 0.2f, 0.8f, 1.0f), 1.0),
+        Circle(Point3D(-0.03,-0.03, 0.0),0.1, 0.08, Color4F(0.5f, 0.2f, 0.6f, 1.0f), 2.0),
+        Circle(Point3D(-0.06,-0.06, 0.0),0.1, 0.08, Color4F(0.5f, 0.2f, 0.4f, 1.0f), 3.0),
+        Circle(Point3D(-0.09,-0.09, 0.0),0.1, 0.08, Color4F(0.5f, 0.2f, 0.2f, 1.0f), 4.0)
+        )
+    private val center = Circle(Point3D(-0.00,-0.00, 0.0),0.08, 0.02, Color4F(0.5f, 0.5f, 0.5f, 1.0f), 1.0)
     private val lines = arrayOf(
-        createLine(0.0, 0.0, 0.0, 0.5, 0.2, 1.0, Color4F(0.1f, 0.7f, 0.1f, 1.0f))
+        createLine(0.0, 0.1,  0.0,  0.5, 0.015, 9.0, Color4F(0.6f, 0.9f, 0.1f, 1.0f)),
+        createLine(0.1, 0.1,  0.5,  0.5, 0.020, 8.0, Color4F(0.1f, 0.7f, 0.1f, 1.0f)),
+        createLine(0.1, 0.0,  0.5,  0.0, 0.015, 6.0, Color4F(0.1f, 0.6f, 0.1f, 1.0f)),
+        createLine(0.1, -0.1,  0.5,  -0.5, 0.010, 5.0, Color4F(0.1f, 0.5f, 0.1f, 1.0f)),
+        createLine(0.0, -0.1,  0.0,  -0.5, 0.015, 4.0, Color4F(0.1f, 0.4f, 0.1f, 1.0f)),
+        createLine(-0.1, -0.1, -0.5, -0.5, 0.005, 3.0, Color4F(0.1f, 0.3f, 0.1f, 1.0f)),
+        createLine(-0.1, 0.0,  -0.5, -0.0, 0.015, 2.0, Color4F(0.1f, 0.2f, 0.1f, 1.0f)),
+        createLine(-0.1, 0.1,  -0.5,  0.5, 0.015, 2.0, Color4F(0.1f, 0.8f, 0.1f, 1.0f))
     )
     private var shift_x : Double = 0.0
     private var shift_y : Double = 0.0
@@ -142,6 +150,7 @@ class Viewer : GLEventListener, KeyListener {
                 c.move(Point3D(sh.x + shift_x, sh.y + shift_y, sh.z))
                 circleRender.draw(gl = gl, mvpMatrix = mMVPMatrix.matrix, shape = c)
             }
+            circleRender.draw(gl = gl, mvpMatrix = mMVPMatrix.matrix, shape = center)
             lineRender.useProgram(gl)
             lines.forEach { l -> lineRender.draw(gl = gl, mvpMatrix = mMVPMatrix.matrix, shape = l) }
 
@@ -171,8 +180,9 @@ class Viewer : GLEventListener, KeyListener {
 //                0f, 0f, 0f,
 //                0f, 1.0f, 0.0f)
             mViewMatrix.loadIdentity()
-            mViewMatrix.rotate(kotlin.math.PI.toFloat(), 0.0f, 1.0f, 0.0f)
-            mViewMatrix.translate(0.0f, 0.0f, 10.0f)
+            mViewMatrix.rotate(0.0f, //kotlin.math.PI.toFloat(),
+                0.0f, 1.0f, 0.0f)
+            mViewMatrix.translate(0.0f, 0.0f, -10.0f)
             // Calculate the projection and view transformation
             mMVPMatrix.loadIdentity()
             mMVPMatrix.multMatrix(mProjectionMatrix)

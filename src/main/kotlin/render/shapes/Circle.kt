@@ -1,5 +1,6 @@
 package render.shapes
 
+import com.jogamp.opengl.GL
 import com.jogamp.opengl.GL2
 import com.jogamp.opengl.GL2ES2.*
 import com.jogamp.opengl.GLES2
@@ -146,6 +147,7 @@ class CircleRender() : RenderBase<Circle>(){
                 gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
                 gl.glEnable(GLES2.GL_CULL_FACE)
                 gl.glEnable(GLES2.GL_DEPTH_TEST)
+                gl.glFrontFace(GL.GL_CW)
                 // Draw the triangle
                 gl.glDrawArrays(GL_TRIANGLES, 0, shape.vertexCount())
                 gl.glDisableVertexAttribArray(th)
