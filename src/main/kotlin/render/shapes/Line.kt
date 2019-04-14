@@ -46,7 +46,7 @@ class LineRender : RenderBase<Line>(){
                   float radius = 0.125;
                   float distTop    = distance(vec2(0.125, 0.875), v_TexCoordinate);
                   float distBottom = distance(vec2(0.125, 0.125), v_TexCoordinate);
-                  float delta = 0.1*radius;
+                  float delta = 0.03 + 0.1*(1.0 - smoothstep(0.01, 0.015, v_Thickness));
 
                   float alphaMainLeft  = smoothstep(0.0, delta, v_TexCoordinate.x);
                   float alphaMainRight = 1.0 - smoothstep(delta, 0.0, 0.25 - v_TexCoordinate.x);
@@ -142,15 +142,6 @@ class LineRender : RenderBase<Line>(){
                 mModelMatrix.rotate(shape.angleRad().toFloat(), 0.0f, 0.0f, 1.0f)
 
                 mModelMatrix.multMatrix(mvpMatrix)
-
-//                mTranslateMatrix.loadIdentity()
-//                mTranslateMatrix.translate(
-//                    shape.shift().x.toFloat(),// + shape.start().x.toFloat(),
-//                    shape.shift().y.toFloat(),// + shape.start().y.toFloat(),
-//                    shape.shift().z.toFloat()
-//                )
-//                mModelMatrix.multMatrix(mTranslateMatrix)
-
                 // get handle to shape's transformation matrix
                 mMVPMatrixHandle = gl.glGetUniformLocation(mProgram, "uMVPMatrix").also { matrixHandle ->
                     // Pass the projection and view transformation to the shader

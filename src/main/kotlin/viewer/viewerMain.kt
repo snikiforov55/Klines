@@ -63,7 +63,7 @@ class Viewer : GLEventListener, KeyListener {
     private val center = Circle(Point3D(-0.00,-0.00, 0.0),0.08, 0.02, Color4F(0.5f, 0.5f, 0.5f, 1.0f), 1.0)
     private val lines = arrayOf(
         createLine(0.0, 0.1,  0.0,  0.5, 0.015, 9.0, Color4F(0.6f, 0.9f, 0.1f, 1.0f)),
-        createLine(0.1, 0.1,  0.5,  0.5, 0.020, 8.0, Color4F(0.1f, 0.7f, 0.1f, 1.0f)),
+        createLine(0.1, 0.1,  0.2,  0.4, 0.010, 8.0, Color4F(0.1f, 0.7f, 0.1f, 1.0f)),
         createLine(0.1, 0.0,  0.5,  0.0, 0.015, 6.0, Color4F(0.1f, 0.6f, 0.1f, 1.0f)),
         createLine(0.1, -0.1,  0.5,  -0.5, 0.010, 5.0, Color4F(0.1f, 0.5f, 0.1f, 1.0f)),
         createLine(0.0, -0.1,  0.0,  -0.5, 0.015, 4.0, Color4F(0.1f, 0.4f, 0.1f, 1.0f)),
