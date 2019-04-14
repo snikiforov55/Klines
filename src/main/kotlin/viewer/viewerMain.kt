@@ -8,10 +8,7 @@ import com.jogamp.opengl.math.Matrix4
 import com.jogamp.opengl.util.Animator
 import render.base.Color4F
 import render.base.Point3D
-import render.shapes.Circle
-import render.shapes.CircleRender
-import render.shapes.Triangle
-import render.shapes.TriangleRender
+import render.shapes.*
 import kotlin.math.min
 import kotlin.math.max
 
@@ -26,6 +23,8 @@ class Viewer : GLEventListener, KeyListener {
     private val animator = Animator(window)
     private val triangleRender = TriangleRender()
     private val circleRender   = CircleRender()
+    private val lineRender     = LineRender()
+
     private val mProjectionMatrix = Matrix4()
     private val mViewMatrix       = Matrix4()
     private val mMVPMatrix        = Matrix4()
@@ -61,6 +60,9 @@ class Viewer : GLEventListener, KeyListener {
         Circle(Point3D(-0.06,-0.06, 0.0),0.1, 0.08, Color4F(0.5f, 0.2f, 0.4f, 1.0f), 2.0),
         Circle(Point3D(-0.09,-0.09, 0.0),0.1, 0.08, Color4F(0.5f, 0.2f, 0.2f, 1.0f), 1.0)
     )
+    private val lines = arrayOf(
+        createLine(0.0, 0.0, 0.0, 0.5, 0.2, 1.0, Color4F(0.1f, 0.7f, 0.1f, 1.0f))
+    )
     private var shift_x : Double = 0.0
     private var shift_y : Double = 0.0
 
@@ -88,6 +90,7 @@ class Viewer : GLEventListener, KeyListener {
         gl.glBlendFunc(GLES2.GL_SRC_ALPHA, GLES2.GL_ONE_MINUS_SRC_ALPHA)
         triangleRender.doInit(gl)
         circleRender.doInit(gl)
+        lineRender.doInit(gl)
     }
 
 //    private fun initDebug(gl: GL4) {
@@ -137,7 +140,11 @@ class Viewer : GLEventListener, KeyListener {
             circles.forEach { c ->
                 val sh = c.shift()
                 c.move(Point3D(sh.x + shift_x, sh.y + shift_y, sh.z))
-                circleRender.draw(gl = gl, mvpMatrix = mMVPMatrix.matrix, shape = c) }
+                circleRender.draw(gl = gl, mvpMatrix = mMVPMatrix.matrix, shape = c)
+            }
+            lineRender.useProgram(gl)
+            lines.forEach { l -> lineRender.draw(gl = gl, mvpMatrix = mMVPMatrix.matrix, shape = l) }
+
         }
     }
 

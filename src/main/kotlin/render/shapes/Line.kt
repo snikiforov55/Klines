@@ -9,12 +9,9 @@ import render.base.RenderBase
 import render.base.Shape
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import kotlin.math.acos
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.sqrt
+import kotlin.math.*
 
-class LineRender() : RenderBase<Circle>(){
+class LineRender() : RenderBase<Line>(){
     /**
      * Vertex Shader
      */
@@ -53,31 +50,49 @@ class LineRender() : RenderBase<Circle>(){
                 varying  float v_Radius;
                 varying  float v_Thickness;
                 void main() {
-                  float dist = distance(vec2(0.5, 0.5), v_TexCoordinate) / 0.5 * v_Radius;
-                  float edgeWidth = max(v_Radius * 0.008, 0.005);
-                  float outerEdge = smoothstep( -edgeWidth,
-                                                 0.0,
-                                                 dist - v_Radius
-                                              );
-                  float innerEdge = smoothstep(v_Thickness - edgeWidth,
-                                               v_Thickness,
-                                               v_Radius - dist
-                                              );
-                  innerEdge = v_Thickness < 0.0 ? 0.0 : innerEdge;
-                  float a = 1.0 - outerEdge - innerEdge;
-                  // --- with proper sorting it is not needed :) if(a <= 0.5) discard;
-                  gl_FragColor = vColor;
-                  gl_FragColor.a = a;
+                  //float dist = distance(vec2(0.5, 0.5), v_TexCoordinate) / 0.5 * v_Radius;
+                  //float edgeWidth = max(v_Radius * 0.008, 0.005);
+                  //float outerEdge = smoothstep( -edgeWidth,
+                  //                               0.0,
+                  //                               dist - v_Radius
+                  //                            );
+                  //float innerEdge = smoothstep(v_Thickness - edgeWidth,
+                  //                             v_Thickness,
+                  //                             v_Radius - dist
+                  //                            );
+                  //innerEdge = v_Thickness < 0.0 ? 0.0 : innerEdge;
+                  //float a = 1.0 - outerEdge - innerEdge;
+                  vec4 c;
+                  c = (v_TexCoordinate.y < 0.25) ? vec4(1.0, 0.0, 0.0, 1.0) : vColor;
+                  c = (v_TexCoordinate.y > 0.75) ? vec4(0.0, 0.0, 0.4, 1.0) : c;
+                  gl_FragColor = c;
+                  //gl_FragColor.a = a;
                 }
     """
 
     private val textureCoordinates = arrayOf(
-         0.0f, 0.0f, // bottom left
-         0.0f, 1.0f, // top left
-        0.25f, 0.0f, // bottom right
-        0.25f, 0.0f, // bottom right
-         0.0f, 1.0f, // top left
-        0.25f, 1.0f  // top right
+         // Top
+         0.0f, 0.75f, // bottom left
+         0.0f, 1.00f, // top left
+        0.25f, 0.75f, // bottom right
+        0.25f, 0.75f, // bottom right
+         0.0f, 1.00f, // top left
+        0.25f, 1.00f, // top right
+         // Main
+         0.0f, 0.25f, // bottom left
+         0.0f, 0.75f, // top left
+        0.25f, 0.25f, // bottom right
+        0.25f, 0.25f, // bottom right
+         0.0f, 0.75f, // top left
+        0.25f, 0.75f, // top right
+        // bottom
+         0.0f,  0.0f, // bottom left
+         0.0f, 0.25f, // top left
+        0.25f,  0.0f, // bottom right
+        0.25f,  0.0f, // bottom right
+         0.0f, 0.25f, // top left
+        0.25f, 0.25f  // top right
+
     )
     private val textureBuffer  = // (number of coordinate values * 4 bytes per float)
         ByteBuffer.allocateDirect(textureCoordinates.size * 4).run {
@@ -92,7 +107,7 @@ class LineRender() : RenderBase<Circle>(){
                 position(0)
             }
         }
-    override fun draw(gl : GL2, mvpMatrix: FloatArray, shape : Circle) {
+    override fun draw(gl : GL2, mvpMatrix: FloatArray, shape : Line) {
         // get handle to vertex shader's vPosition member
         gl.glGetAttribLocation(mProgram, "vPosition").also { pos ->
 
@@ -129,7 +144,7 @@ class LineRender() : RenderBase<Circle>(){
                 }
                 gl.glGetUniformLocation(mProgram, "a_RadiusThickness").also { r ->
                     gl.glEnableVertexAttribArray(r)
-                    gl.glUniform2f(r, shape.radius().toFloat(), shape.thickness().toFloat())
+                    gl.glUniform2f(r, shape.r().toFloat(), shape.thickness().toFloat())
                 }
                 mModelMatrix.loadIdentity()
                 mTranslateMatrix.loadIdentity()
@@ -159,39 +174,53 @@ class LineRender() : RenderBase<Circle>(){
     }
 }
 
-class Line : Shape {
-    private var thickness : Double = 0.01
-    private var r : Double = 0.1
-    private var angle : Double = 0.0
+fun createLine(_startX: Double, _startY: Double, _endX : Double, _endY : Double, _thickness : Double,
+               _layer : Double, _color : Color4F) : Line{
 
+    val r = max(0.001, sqrt( (_endX - _startX)*(_endX - _startX) + (_endY - _startY)*(_endY - _startY)))
+    val thickness = min(r/2.0, _thickness)
+    val angle = acos((_endY - _startY)/r)
 
-    override var points : Array<Point3D> = arrayOf(
-        Point3D(-1.0, -1.0, 0.0), // bottom right
-        Point3D(-1.0,  1.0, 0.0), // top left
-        Point3D( 1.0, -1.0, 0.0), // bottom left
-        Point3D( 1.0, -1.0, 0.0), // bottom right
-        Point3D(-1.0,  1.0, 0.0), // top right
-        Point3D( 1.0,  1.0, 0.0)  // top left
+    val dx = thickness / 2.0
+    val points = arrayOf(
+        // Top part
+        Point3D(x = -dx, y =    r, z = _layer), // bottom right
+        Point3D(x = -dx, y = dx+r, z = _layer), // top left
+        Point3D(x =  dx, y =    r, z = _layer), // bottom left
+        Point3D(x =  dx, y =    r, z = _layer), // bottom right
+        Point3D(x = -dx, y = dx+r, z = _layer), // top right
+        Point3D(x =  dx, y = dx+r, z = _layer),  // top left
+        // Main line
+        Point3D(x = -dx, y =  0.0, z = _layer), // bottom right
+        Point3D(x = -dx, y =    r, z = _layer), // top left
+        Point3D(x =  dx, y =  0.0, z = _layer), // bottom left
+        Point3D(x =  dx, y =  0.0, z = _layer), // bottom right
+        Point3D(x = -dx, y =    r, z = _layer), // top right
+        Point3D(x =  dx, y =    r, z = _layer),  // top left
+        // Bottom part
+        Point3D(x = -dx, y =  -dx, z = _layer), // bottom right
+        Point3D(x = -dx, y =  0.0, z = _layer), // top left
+        Point3D(x =  dx, y =  -dx, z = _layer), // bottom left
+        Point3D(x =  dx, y =  -dx, z = _layer), // bottom right
+        Point3D(x = -dx, y =  0.0, z = _layer), // top right
+        Point3D(x =  dx, y =  0.0, z = _layer)  // top left
     )
-    constructor(_start : Point3D, _end : Point3D, _thickness : Double, _color : Color4F, _layer : Double = 1.0){
-        initInternals(_start, _end, _thickness, _color, _layer)
+    val l = Line(points, thickness, r, angle)
+    l.setColor(_color)
+    return l
+}
 
-    }
-    private fun initInternals(_start : Point3D, _end : Point3D, _thickness : Double, _color : Color4F, _layer : Double){
-        layer = _layer
-        r = max(0.001, sqrt( (_end.x - _start.x)*(_end.x - _start.x) + (_end.y - _start.y)*(_end.y - _start.y)))
-        thickness = min(r/2.0, thickness)
-        angle = acos((_end.y - _start.y)/r)
+class Line(override val points : Array<Point3D>,
+           private var thickness : Double = 0.01,
+           private var r : Double = 0.1,
+           private var angle : Double = 0.0) : Shape() {
 
-        val dx = _thickness / 2.0
-        points = arrayOf(
-        Point3D(x = -dx, y = -thickness , z = layer), // bottom right
-        Point3D(x = -dx, y = r+thickness, z = layer), // top left
-        Point3D(x =  dx, y = -thickness , z = layer), // bottom left
-        Point3D(x =  dx, y = -thickness , z = layer), // bottom right
-        Point3D(x = -dx, y = r+thickness, z = layer), // top right
-        Point3D(x =  dx, y = -thickness , z = layer)  // top left
-        )
-        setColor(_color)
+    fun thickness() = thickness
+    fun r() = r
+    fun angleRad() = angle
+    fun angleDeg() = angle*180.0/PI
+
+    init {
+        doInit()
     }
 }

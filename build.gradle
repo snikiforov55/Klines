@@ -26,6 +26,8 @@ dependencies {
 
     compile "org.jogamp.gluegen:gluegen-rt-main:$jogl"
     compile "org.jogamp.jogl:jogl-all-main:$jogl"
+
+    testImplementation 'junit:junit:4.12'
 }
 
 repositories {

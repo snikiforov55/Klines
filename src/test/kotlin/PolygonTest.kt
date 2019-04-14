@@ -1,8 +1,6 @@
-package com.example.stnik.render
+package render
 
-import com.example.stnik.render.base.Point3D
-import com.example.stnik.render.shapes.Circle
-import com.example.stnik.render.shapes.Polygon
+import render.shapes.Polygon
 import org.junit.Test
 
 class PolygonTest {
