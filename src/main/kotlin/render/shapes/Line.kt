@@ -138,16 +138,18 @@ class LineRender : RenderBase<Line>(){
                 }
                 mModelMatrix.loadIdentity()
                 mModelMatrix.translate(shape.start().x.toFloat(),shape.start().y.toFloat(),0.0f)
+                mModelMatrix.translate(shape.shift().x.toFloat(),shape.shift().y.toFloat(),shape.shift().z.toFloat())
                 mModelMatrix.rotate(shape.angleRad().toFloat(), 0.0f, 0.0f, 1.0f)
 
-                mTranslateMatrix.loadIdentity()
-                mTranslateMatrix.translate(
-                    shape.shift().x.toFloat(),// + shape.start().x.toFloat(),
-                    shape.shift().y.toFloat(),// + shape.start().y.toFloat(),
-                    shape.shift().z.toFloat()
-                )
                 mModelMatrix.multMatrix(mvpMatrix)
-                mModelMatrix.multMatrix(mTranslateMatrix)
+
+//                mTranslateMatrix.loadIdentity()
+//                mTranslateMatrix.translate(
+//                    shape.shift().x.toFloat(),// + shape.start().x.toFloat(),
+//                    shape.shift().y.toFloat(),// + shape.start().y.toFloat(),
+//                    shape.shift().z.toFloat()
+//                )
+//                mModelMatrix.multMatrix(mTranslateMatrix)
 
                 // get handle to shape's transformation matrix
                 mMVPMatrixHandle = gl.glGetUniformLocation(mProgram, "uMVPMatrix").also { matrixHandle ->

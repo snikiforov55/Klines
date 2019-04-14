@@ -55,10 +55,10 @@ class Viewer : GLEventListener, KeyListener {
             1.0)
     )
     private val circles = arrayOf(
-        Circle(0.1, 0.08, Color4F(0.5f, 0.2f, 0.8f, 1.0f), 1.0),
-        Circle(Point3D(-0.03,-0.03, 0.0),0.1, 0.08, Color4F(0.5f, 0.2f, 0.6f, 1.0f), 2.0),
-        Circle(Point3D(-0.06,-0.06, 0.0),0.1, 0.08, Color4F(0.5f, 0.2f, 0.4f, 1.0f), 3.0),
-        Circle(Point3D(-0.09,-0.09, 0.0),0.1, 0.08, Color4F(0.5f, 0.2f, 0.2f, 1.0f), 4.0)
+        Circle(Point3D(-0.60,-0.03, 0.0),0.1, 0.08, Color4F(0.5f, 0.2f, 0.8f, 1.0f), 1.0),
+        Circle(Point3D(-0.63,-0.03, 0.0),0.1, 0.08, Color4F(0.5f, 0.2f, 0.6f, 1.0f), 2.0),
+        Circle(Point3D(-0.66,-0.06, 0.0),0.1, 0.08, Color4F(0.5f, 0.2f, 0.4f, 1.0f), 3.0),
+        Circle(Point3D(-0.69,-0.09, 0.0),0.1, 0.08, Color4F(0.5f, 0.2f, 0.2f, 1.0f), 4.0)
         )
     private val center = Circle(Point3D(-0.00,-0.00, 0.0),0.08, 0.02, Color4F(0.5f, 0.5f, 0.5f, 1.0f), 1.0)
     private val lines = arrayOf(
@@ -69,7 +69,7 @@ class Viewer : GLEventListener, KeyListener {
         createLine(0.0, -0.1,  0.0,  -0.5, 0.015, 4.0, Color4F(0.1f, 0.4f, 0.1f, 1.0f)),
         createLine(-0.1, -0.1, -0.5, -0.5, 0.005, 3.0, Color4F(0.1f, 0.3f, 0.1f, 1.0f)),
         createLine(-0.1, 0.0,  -0.5, -0.0, 0.015, 2.0, Color4F(0.1f, 0.2f, 0.1f, 1.0f)),
-        createLine(-0.1, 0.1,  -0.5,  0.5, 0.015, 2.0, Color4F(0.1f, 0.8f, 0.1f, 1.0f))
+        createLine(-0.1, 0.1,  -0.5,  0.5, 0.035, 2.0, Color4F(0.1f, 0.8f, 0.1f, 1.0f))
     )
     private var shift_x : Double = 0.0
     private var shift_y : Double = 0.0
@@ -146,8 +146,8 @@ class Viewer : GLEventListener, KeyListener {
 
             circleRender.useProgram(gl)
             circles.forEach { c ->
-                val sh = c.shift()
-                c.move(Point3D(sh.x + shift_x, sh.y + shift_y, sh.z))
+                //val sh = c.shift()
+                //c.move(Point3D(sh.x + shift_x, sh.y + shift_y, sh.z))
                 circleRender.draw(gl = gl, mvpMatrix = mMVPMatrix.matrix, shape = c)
             }
             circleRender.draw(gl = gl, mvpMatrix = mMVPMatrix.matrix, shape = center)
@@ -221,6 +221,9 @@ class Viewer : GLEventListener, KeyListener {
         }
         if(e.keyCode === KeyEvent.VK_RIGHT){
             shift_x += 0.01
+        }
+        lines.forEach { c ->
+            c.move(Point3D(shift_x, shift_y, 0.0))
         }
     }
     override fun keyReleased(e: KeyEvent) {
