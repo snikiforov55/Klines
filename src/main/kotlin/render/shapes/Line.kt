@@ -58,7 +58,7 @@ class LineRender : RenderBase<Line>(){
                   alpha         = (v_TexCoordinate.y >  0.875 ) ? alphaTop       : alpha;
                   alpha         = (v_TexCoordinate.y <  0.125 ) ? alphaBottom    : alpha;
 
-                  if(alpha <= 0.3) discard;
+                  if(alpha <= 0.1) discard;
                   gl_FragColor   = (isShadow == 1) ? vColorShadow : vColor;
                   gl_FragColor.a = alpha;
                 }

@@ -62,7 +62,7 @@ class CircleRender() : RenderBase<Circle>(){
                                               );
                   innerEdge = v_Thickness < 0.0 ? 0.0 : innerEdge;
                   float a = 1.0 - outerEdge - innerEdge;
-                  // --- with proper sorting it is not needed :) if(a <= 0.5) discard;
+                  if(a <= 0.3) discard;
                   gl_FragColor = vColor;
                   gl_FragColor.a = a;
                 }

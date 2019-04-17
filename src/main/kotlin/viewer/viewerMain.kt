@@ -72,17 +72,17 @@ class Viewer : GLEventListener, KeyListener {
         createLine(0.0, 0.1,  0.0,  0.5, 0.015, 9.0, Color4F(0.6f, 0.9f, 0.1f, 1.0f)),
         createLine(0.1, 0.1,  0.2,  0.4, 0.010, 8.0, Color4F(0.1f, 0.7f, 0.1f, 1.0f)),
         createLine(0.1, 0.0,  0.5,  0.0, 0.015, 6.0, Color4F(0.1f, 0.6f, 0.1f, 1.0f)),
-        createLine(0.1, -0.1,  0.5,  -0.5, 0.010, 5.0, Color4F(0.1f, 0.5f, 0.1f, 1.0f)),
+        createLine(0.1, -0.1,  0.5,  -0.5, 0.020, 10.0, Color4F(0.1f, 0.5f, 0.1f, 1.0f)),
         createLine(0.0, -0.1,  0.0,  -0.5, 0.015, 4.0, Color4F(0.1f, 0.4f, 0.1f, 1.0f)),
         createLine(-0.1, -0.1, -0.5, -0.5, 0.005, 3.0, Color4F(0.1f, 0.3f, 0.1f, 1.0f)),
         createLine(-0.1, 0.0,  -0.5, -0.0, 0.015, 2.0, Color4F(0.1f, 0.2f, 0.1f, 1.0f)),
         createLine(-0.1, 0.1,  -0.5,  0.5, 0.035, 2.0, Color4F(0.1f, 0.8f, 0.1f, 1.0f))
     )
     private val linesHalo = arrayOf(
-        createLine(0.7, -0.6,  0.8,  -0.2, 0.11, 1.0, Color4F(0.6f, 0.2f, 0.1f, 1.0f)),
-        createLine(0.6, -0.4,  0.9,  -0.4, 0.11, 1.0, Color4F(0.1f, 0.9f, 0.1f, 1.0f)),
-        createLine(0.7, -0.6,  0.6,  -0.2, 0.11, 1.0, Color4F(0.3f, 0.3f, 0.7f, 1.0f))
-
+        createLine(0.7, -0.6,  0.8,  -0.2, 0.06, 1.0, Color4F(0.6f, 0.2f, 0.1f, 1.0f)),
+        createLine(0.6, -0.4,  0.9,  -0.4, 0.06, 1.0, Color4F(0.1f, 0.9f, 0.1f, 1.0f)),
+        createLine(0.7, -0.6,  0.6,  -0.2, 0.06, 1.0, Color4F(0.3f, 0.3f, 0.7f, 1.0f)),
+        createLine(0.4, -0.6,  0.3,  -0.2, 0.06, 3.0, Color4F(0.3f, 0.3f, 0.7f, 1.0f))
     )
     private var shift_x : Double = 0.0
     private var shift_y : Double = 0.0
@@ -173,8 +173,6 @@ class Viewer : GLEventListener, KeyListener {
                 circleRender.draw(gl = gl, mvpMatrix = mMVPMatrix.matrix, shape = c)
             }
             circleRender.draw(gl = gl, mvpMatrix = mMVPMatrix.matrix, shape = center)
-            lineRender.useProgram(gl)
-            lines.forEach { l -> lineRender.draw(gl = gl, mvpMatrix = mMVPMatrix.matrix, shape = l) }
 
             outliner.map {
                 it.outline(gl, mMVPMatrix, Color4F(1.0f, 1.0f, 1.0f, 1.0f),
@@ -186,6 +184,11 @@ class Viewer : GLEventListener, KeyListener {
                     }
                 )
             }
+            gl.glEnable(GL.GL_DEPTH_TEST)
+            gl.glDisable(GL.GL_STENCIL_TEST)
+            //gl.glStencilOp(GL.GL_KEEP, GL.GL_KEEP, GL.GL_REPLACE)
+            lineRender.useProgram(gl)
+            lines.forEach { l -> lineRender.draw(gl = gl, mvpMatrix = mMVPMatrix.matrix, shape = l) }
         }
     }
 
