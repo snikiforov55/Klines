@@ -108,7 +108,7 @@ abstract class RenderBase<S : ShapeInterface>() {
             gl.glUseProgram(mProgram)
         }
     }
-    open fun draw(gl : GL2, mvpMatrix: FloatArray, shape : S) {
+    open fun draw(gl : GL2, mvpMatrix: FloatArray, shape : S, isShadow : Int = 0) {
 
         // get handle to vertex shader's vPosition member
         gl.glGetAttribLocation(mProgram, "vPosition").also {

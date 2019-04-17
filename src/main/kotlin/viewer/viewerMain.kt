@@ -1,14 +1,19 @@
 package viewer
 
+import arrow.core.None
+import arrow.core.Option
+import arrow.core.Some
 import com.jogamp.newt.event.KeyEvent
 import com.jogamp.newt.event.KeyListener
 import com.jogamp.newt.opengl.GLWindow
 import com.jogamp.opengl.*
+import com.jogamp.opengl.GL.GL_STENCIL_BUFFER_BIT
 import com.jogamp.opengl.math.Matrix4
 import com.jogamp.opengl.util.Animator
 import render.base.Color4F
 import render.base.Point3D
 import render.shapes.*
+import render.util.Outline
 import kotlin.math.min
 import kotlin.math.max
 
@@ -19,15 +24,17 @@ fun main(args: Array<String>) {
 
 class Viewer : GLEventListener, KeyListener {
 
-    private val window = GLWindow.create(GLCapabilities(GLProfile.get(GLProfile.GL2)))
-    private val animator = Animator(window)
+    private val window : GLWindow
+    private val animator : Animator
     private val triangleRender = TriangleRender()
     private val circleRender   = CircleRender()
     private val lineRender     = LineRender()
+    private var outliner : Option<Outline> = None
 
     private val mProjectionMatrix = Matrix4()
     private val mViewMatrix       = Matrix4()
     private val mMVPMatrix        = Matrix4()
+
     private val triangles : Array<Triangle> = arrayOf(
         Triangle(Point3D(0.50, 0.50, 0.0),
             Point3D(-0.2,-0.15, 0.0),
@@ -71,14 +78,28 @@ class Viewer : GLEventListener, KeyListener {
         createLine(-0.1, 0.0,  -0.5, -0.0, 0.015, 2.0, Color4F(0.1f, 0.2f, 0.1f, 1.0f)),
         createLine(-0.1, 0.1,  -0.5,  0.5, 0.035, 2.0, Color4F(0.1f, 0.8f, 0.1f, 1.0f))
     )
+    private val linesHalo = arrayOf(
+        createLine(0.7, -0.6,  0.8,  -0.2, 0.11, 1.0, Color4F(0.6f, 0.2f, 0.1f, 1.0f)),
+        createLine(0.6, -0.4,  0.9,  -0.4, 0.11, 1.0, Color4F(0.1f, 0.9f, 0.1f, 1.0f)),
+        createLine(0.7, -0.6,  0.6,  -0.2, 0.11, 1.0, Color4F(0.3f, 0.3f, 0.7f, 1.0f))
+
+    )
     private var shift_x : Double = 0.0
     private var shift_y : Double = 0.0
 
     init {
+        val cap = GLCapabilities(GLProfile.get(GLProfile.GL2))
+        cap.stencilBits = 8
+        window = GLWindow.create(cap)
+        animator = Animator(window)
         with(window) {
             setSize(800, 800); setPosition(100, 50)
             isUndecorated = false; isAlwaysOnTop = false; isFullscreen = false; isPointerVisible = true
-            confinePointer(false); title = "hello"; contextCreationFlags = GLContext.CTX_OPTION_DEBUG; isVisible = true
+            confinePointer(false)
+            title = "hello"
+            contextCreationFlags = GLContext.CTX_OPTION_DEBUG
+            isVisible = true
+
             addGLEventListener(this@Viewer)
             addKeyListener(this@Viewer)
         }
@@ -90,7 +111,7 @@ class Viewer : GLEventListener, KeyListener {
         val gl = drawable.gl.gL2
         start = System.currentTimeMillis()
         // Set the background frame color
-        gl.glClearColor(0.2f, 0.2f, 0.2f, 1.0f)
+        gl.glClearColor(0.3f, 0.3f, 0.3f, 1.0f)
         // Use culling to remove back faces.
         gl.glEnable(GLES2.GL_CULL_FACE)
         gl.glEnable(GLES2.GL_DEPTH_TEST)
@@ -99,6 +120,7 @@ class Viewer : GLEventListener, KeyListener {
         triangleRender.doInit(gl)
         circleRender.doInit(gl)
         lineRender.doInit(gl)
+        outliner = Some(Outline(gl))
     }
 
 //    private fun initDebug(gl: GL4) {
@@ -139,7 +161,7 @@ class Viewer : GLEventListener, KeyListener {
             // Set Background color
             glClearColor(0.2f, 0.2f, 0.2f, 1.0f)
             // Redraw background color
-            glClear(GL2.GL_DEPTH_BUFFER_BIT or GL2.GL_COLOR_BUFFER_BIT)
+            glClear(GL2.GL_DEPTH_BUFFER_BIT or GL2.GL_COLOR_BUFFER_BIT or GL2.GL_STENCIL_BUFFER_BIT)
 
             triangleRender.useProgram(gl)
             triangles.forEach { t -> triangleRender.draw(gl = gl, mvpMatrix = mMVPMatrix.matrix, shape = t) }
@@ -154,6 +176,16 @@ class Viewer : GLEventListener, KeyListener {
             lineRender.useProgram(gl)
             lines.forEach { l -> lineRender.draw(gl = gl, mvpMatrix = mMVPMatrix.matrix, shape = l) }
 
+            outliner.map {
+                it.outline(gl, mMVPMatrix, Color4F(1.0f, 1.0f, 1.0f, 1.0f),
+                    {_gl : GL2, _mvp : Matrix4, _shadow : Int ->
+                        lineRender.useProgram(_gl)
+                        linesHalo.forEach { l ->
+                            lineRender.draw(gl = gl, mvpMatrix = _mvp.matrix, shape = l, isShadow = _shadow)
+                        }
+                    }
+                )
+            }
         }
     }
 

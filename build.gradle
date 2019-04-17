@@ -10,6 +10,7 @@ buildscript {
     repositories {
         mavenCentral()
         maven { url "https://dl.bintray.com/kotlin/kotlin-dev" }
+
     }
 
     dependencies {
@@ -18,20 +19,50 @@ buildscript {
 }
 
 
+
 dependencies {
 
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
     def jogl = '2.3.2'
-
     compile "org.jogamp.gluegen:gluegen-rt-main:$jogl"
     compile "org.jogamp.jogl:jogl-all-main:$jogl"
 
+    def arrow_version = "0.9.0-SNAPSHOT"
+    compile "io.arrow-kt:arrow-core-data:$arrow_version"
+    compile "io.arrow-kt:arrow-core-extensions:$arrow_version"
+    compile "io.arrow-kt:arrow-syntax:$arrow_version"
+    compile "io.arrow-kt:arrow-typeclasses:$arrow_version"
+    compile "io.arrow-kt:arrow-extras-data:$arrow_version"
+    compile "io.arrow-kt:arrow-extras-extensions:$arrow_version"
+    //kapt    "io.arrow-kt:arrow-meta:$arrow_version"
+//
+//    compile "io.arrow-kt:arrow-query-language:$arrow_version" //optional
+//    compile "io.arrow-kt:arrow-free-data:$arrow_version" //optional
+//    compile "io.arrow-kt:arrow-free-extensions:$arrow_version" //optional
+//    compile "io.arrow-kt:arrow-mtl:$arrow_version" //optional
+//    compile "io.arrow-kt:arrow-effects-data:$arrow_version" //optional
+//    compile "io.arrow-kt:arrow-effects-extensions:$arrow_version" //optional
+//    compile "io.arrow-kt:arrow-effects-io-extensions:$arrow_version" //optional
+//    compile "io.arrow-kt:arrow-effects-rx2-data:$arrow_version" //optional
+//    compile "io.arrow-kt:arrow-effects-rx2-extensions:$arrow_version" //optional
+//    compile "io.arrow-kt:arrow-effects-reactor-data:$arrow_version" //optional
+//    compile "io.arrow-kt:arrow-effects-reactor-extensions:$arrow_version" //optional
+//    compile "io.arrow-kt:arrow-effects-kotlinx-coroutines-data:$arrow_version" //optional
+//    compile "io.arrow-kt:arrow-effects-kotlinx-coroutines-extensions:$arrow_version" //optional
+//    compile "io.arrow-kt:arrow-optics:$arrow_version" //optional
+//    compile "io.arrow-kt:arrow-generic:$arrow_version" //optional
+//    compile "io.arrow-kt:arrow-recursion-data:$arrow_version" //optional
+//    compile "io.arrow-kt:arrow-recursion-extensions:$arrow_version" //optional
+//    compile "io.arrow-kt:arrow-query-language:$arrow_version" //optional
+//    compile "io.arrow-kt:arrow-integration-retrofit-adapter:$arrow_version" //optional
+
     testImplementation 'junit:junit:4.12'
 }
-
 repositories {
     mavenCentral()
     maven { url 'https://jitpack.io' }
     maven { url "https://dl.bintray.com/kotlin/kotlin-dev" }
+    maven { url "https://dl.bintray.com/arrow-kt/arrow-kt/" }
+    maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local/' }
 }

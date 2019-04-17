@@ -1,11 +1,10 @@
 package render.shapes
 
-import com.jogamp.opengl.GL.GL_CCW
+
 import com.jogamp.opengl.GL.GL_CW
 import com.jogamp.opengl.GL2
 import com.jogamp.opengl.GL2ES2
 import com.jogamp.opengl.GLES2
-import com.jogamp.opengl.math.Matrix4
 import render.base.Color4F
 import render.base.Point3D
 import render.base.RenderBase
@@ -39,6 +38,8 @@ class LineRender : RenderBase<Line>(){
      */
     override val fragmentShaderCode ="""
                 uniform vec4 vColor;
+                uniform vec4 vColorShadow;
+                uniform int  isShadow;
                 varying vec2 v_TexCoordinate;
                 varying  float v_Radius;
                 varying  float v_Thickness;
@@ -57,7 +58,8 @@ class LineRender : RenderBase<Line>(){
                   alpha         = (v_TexCoordinate.y >  0.875 ) ? alphaTop       : alpha;
                   alpha         = (v_TexCoordinate.y <  0.125 ) ? alphaBottom    : alpha;
 
-                  gl_FragColor   = vColor;
+                  if(alpha <= 0.3) discard;
+                  gl_FragColor   = (isShadow == 1) ? vColorShadow : vColor;
                   gl_FragColor.a = alpha;
                 }
     """
@@ -99,7 +101,7 @@ class LineRender : RenderBase<Line>(){
                 position(0)
             }
         }
-    override fun draw(gl : GL2, mvpMatrix: FloatArray, shape : Line) {
+    override fun draw(gl : GL2, mvpMatrix: FloatArray, shape : Line, isShadow : Int) {
         // get handle to vertex shader's vPosition member
         gl.glGetAttribLocation(mProgram, "vPosition").also { pos ->
 
@@ -132,6 +134,14 @@ class LineRender : RenderBase<Line>(){
                     // Set color for drawing the triangle
                     gl.glUniform4fv(colorHandle, 1, shape.colorBuffer(), 0)
                 }
+                gl.glGetUniformLocation(mProgram, "vColorShadow").also { colorHandle ->
+                    // Set color for drawing the triangle
+                    gl.glUniform4fv(colorHandle, 1, shape.colorShadowBuffer(), 0)
+                }
+                gl.glGetUniformLocation(mProgram, "isShadow").also { shadowHandle ->
+                    // Set color for drawing the triangle
+                    gl.glUniform1i(shadowHandle,isShadow)
+                }
                 gl.glGetUniformLocation(mProgram, "a_RadiusThickness").also { r ->
                     gl.glEnableVertexAttribArray(r)
                     gl.glUniform2f(r, shape.r().toFloat(), shape.thickness().toFloat())
@@ -139,9 +149,8 @@ class LineRender : RenderBase<Line>(){
                 mModelMatrix.loadIdentity()
                 mModelMatrix.translate(shape.start().x.toFloat(),shape.start().y.toFloat(),0.0f)
                 mModelMatrix.translate(shape.shift().x.toFloat(),shape.shift().y.toFloat(),shape.shift().z.toFloat())
-                mModelMatrix.rotate(shape.angleRad().toFloat(), 0.0f, 0.0f, 1.0f)
-
                 mModelMatrix.multMatrix(mvpMatrix)
+                mModelMatrix.rotate(shape.angleRad().toFloat(), 0.0f, 0.0f, 1.0f)
                 // get handle to shape's transformation matrix
                 mMVPMatrixHandle = gl.glGetUniformLocation(mProgram, "uMVPMatrix").also { matrixHandle ->
                     // Pass the projection and view transformation to the shader
@@ -150,7 +159,6 @@ class LineRender : RenderBase<Line>(){
                 gl.glEnable(GL2ES2.GL_BLEND)
                 gl.glBlendFunc(GL2ES2.GL_SRC_ALPHA, GL2ES2.GL_ONE_MINUS_SRC_ALPHA)
                 gl.glEnable(GLES2.GL_CULL_FACE)
-                gl.glEnable(GLES2.GL_DEPTH_TEST)
                 gl.glFrontFace(GL_CW)
                 // Draw the triangle
                 gl.glDrawArrays(GL2ES2.GL_TRIANGLES, 0, shape.vertexCount())
@@ -193,16 +201,15 @@ fun createLine(_startX: Double, _startY: Double, _endX : Double, _endY : Double,
         Point3D(x = -dx, y =  0.0, z = _layer), // top right
         Point3D(x =  dx, y =  0.0, z = _layer)  // top left
     )
-    val l = Line(points, thickness, r, angle, Point3D(_startX, _startY, 0.0))
-    l.setColor(_color)
-    return l
+    return Line(points, thickness, r, angle, Point3D(_startX, _startY, 0.0), _color)
 }
 
 class Line(override val points : Array<Point3D>,
            private var thickness : Double = 0.01,
            private var r : Double = 0.1,
            private var angle : Double = 0.0,
-           private var start : Point3D) : Shape() {
+           private var start : Point3D,
+           _c : Color4F) : Shape(color4f = _c) {
 
     fun thickness() = thickness
     fun r() = r

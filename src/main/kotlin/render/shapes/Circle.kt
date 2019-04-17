@@ -89,7 +89,7 @@ class CircleRender() : RenderBase<Circle>(){
                 position(0)
             }
         }
-    override fun draw(gl : GL2, mvpMatrix: FloatArray, shape : Circle) {
+    override fun draw(gl : GL2, mvpMatrix: FloatArray, shape : Circle, isShadow : Int) {
         // get handle to vertex shader's vPosition member
         gl.glGetAttribLocation(mProgram, "vPosition").also { pos ->
 
