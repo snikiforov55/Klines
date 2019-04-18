@@ -5,6 +5,7 @@ import com.jogamp.opengl.GL.GL_CW
 import com.jogamp.opengl.GL2
 import com.jogamp.opengl.GL2ES2
 import com.jogamp.opengl.GLES2
+import com.jogamp.opengl.math.Matrix4
 import render.base.Color4F
 import render.base.Point3D
 import render.base.RenderBase
@@ -147,10 +148,26 @@ class LineRender : RenderBase<Line>(){
                     gl.glUniform2f(r, shape.r().toFloat(), shape.thickness().toFloat())
                 }
                 mModelMatrix.loadIdentity()
-                mModelMatrix.translate(shape.start().x.toFloat(),shape.start().y.toFloat(),0.0f)
-                mModelMatrix.translate(shape.shift().x.toFloat(),shape.shift().y.toFloat(),shape.shift().z.toFloat())
                 mModelMatrix.multMatrix(mvpMatrix)
-                mModelMatrix.rotate(shape.angleRad().toFloat(), 0.0f, 0.0f, 1.0f)
+
+                val worldMatrix = Matrix4()
+                worldMatrix.loadIdentity()
+                worldMatrix.translate(shape.shift().x.toFloat(),shape.shift().y.toFloat(),shape.shift().z.toFloat())
+                worldMatrix.translate(shape.start().x.toFloat(),shape.start().y.toFloat(),0.0f)
+
+                val localMatrix = Matrix4()
+                localMatrix.loadIdentity()
+                if(isShadow === 1){
+                    val dx = 0.01f
+                    val scaleX = 1.0f + dx/shape.thickness().toFloat()
+                    val scaleY = 1.0f + dx/shape.r().toFloat()
+                    //localMatrix.translate(-dx/2.0f, -dx/2.0f, 0.0f)
+                    worldMatrix.scale(scaleX, scaleY, 1.0f)//(1.2 * shape.thickness()/shape.r()).toFloat(), 1.0f)
+                }
+                localMatrix.rotate(shape.angleRad().toFloat(), 0.0f, 0.0f, 1.0f)
+
+                mModelMatrix.multMatrix(worldMatrix)
+                mModelMatrix.multMatrix(localMatrix)
                 // get handle to shape's transformation matrix
                 mMVPMatrixHandle = gl.glGetUniformLocation(mProgram, "uMVPMatrix").also { matrixHandle ->
                     // Pass the projection and view transformation to the shader
@@ -201,7 +218,7 @@ fun createLine(_startX: Double, _startY: Double, _endX : Double, _endY : Double,
         Point3D(x = -dx, y =  0.0, z = _layer), // top right
         Point3D(x =  dx, y =  0.0, z = _layer)  // top left
     )
-    return Line(points, thickness, r, angle, Point3D(_startX, _startY, 0.0), _color)
+    return Line(points, thickness, r, angle, Point3D(_startX, _startY, _layer), _color)
 }
 
 class Line(override val points : Array<Point3D>,

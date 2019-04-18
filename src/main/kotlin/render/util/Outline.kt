@@ -46,12 +46,8 @@ fun outline(_gl : GL2, _mvpMatrix : Matrix4, _color : Color4F, _render : (GL2, M
     _gl.glDisable(GL_DEPTH_TEST)
 
 
-    val mvpMatrixScaled = Matrix4()
-    mvpMatrixScaled.loadIdentity()
-    mvpMatrixScaled.multMatrix(_mvpMatrix)
-    mvpMatrixScaled.translate(-0.0f, 0.0f, 0.0f)
-    mvpMatrixScaled.scale(1.1f, 1.1f, 1.0f)
-    _render(_gl, mvpMatrixScaled, 1)
+
+    _render(_gl, _mvpMatrix, 1)
 
     _gl.glStencilMask(0x00)
     _gl.glEnable(GL_DEPTH_TEST)

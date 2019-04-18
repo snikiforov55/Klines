@@ -82,7 +82,7 @@ class Viewer : GLEventListener, KeyListener {
         createLine(0.7, -0.6,  0.8,  -0.2, 0.06, 1.0, Color4F(0.6f, 0.2f, 0.1f, 1.0f)),
         createLine(0.6, -0.4,  0.9,  -0.4, 0.06, 1.0, Color4F(0.1f, 0.9f, 0.1f, 1.0f)),
         createLine(0.7, -0.6,  0.6,  -0.2, 0.06, 1.0, Color4F(0.3f, 0.3f, 0.7f, 1.0f)),
-        createLine(0.4, -0.6,  0.3,  -0.2, 0.06, 3.0, Color4F(0.3f, 0.3f, 0.7f, 1.0f))
+        createLine(0.4, -0.8,  0.4,  -0.0, 0.06, 3.0, Color4F(0.3f, 0.3f, 0.7f, 1.0f))
     )
     private var shift_x : Double = 0.0
     private var shift_y : Double = 0.0
