@@ -150,24 +150,42 @@ class LineRender : RenderBase<Line>(){
                 mModelMatrix.loadIdentity()
                 mModelMatrix.multMatrix(mvpMatrix)
 
+
                 val worldMatrix = Matrix4()
                 worldMatrix.loadIdentity()
                 worldMatrix.translate(shape.shift().x.toFloat(),shape.shift().y.toFloat(),shape.shift().z.toFloat())
                 worldMatrix.translate(shape.start().x.toFloat(),shape.start().y.toFloat(),0.0f)
+                mModelMatrix.multMatrix(worldMatrix)
 
-                val localMatrix = Matrix4()
-                localMatrix.loadIdentity()
+                val localMatrixRotate = Matrix4()
+                localMatrixRotate.loadIdentity()
+                localMatrixRotate.rotate(shape.angleRad().toFloat(), 0.0f, 0.0f, 1.0f)
+                val localMatrixTranslate = Matrix4()
+                localMatrixTranslate.loadIdentity()
+                val localMatrixScale = Matrix4()
+                localMatrixScale.loadIdentity()
                 if(isShadow === 1){
                     val dx = 0.01f
                     val scaleX = 1.0f + dx/shape.thickness().toFloat()
                     val scaleY = 1.0f + dx/shape.r().toFloat()
                     //localMatrix.translate(-dx/2.0f, -dx/2.0f, 0.0f)
-                    worldMatrix.scale(scaleX, scaleY, 1.0f)//(1.2 * shape.thickness()/shape.r()).toFloat(), 1.0f)
-                }
-                localMatrix.rotate(shape.angleRad().toFloat(), 0.0f, 0.0f, 1.0f)
+                    localMatrixTranslate.translate(
+                        -shape.thickness().toFloat() / 2.0f - dx/2.0f,
+                        -shape.thickness().toFloat() / 2.0f - dx/2.0f,
+                        0.0f
+                    )
+                    localMatrixScale.scale(scaleX, scaleY, 1.0f)//(1.2 * shape.thickness()/shape.r()).toFloat(), 1.0f)
 
-                mModelMatrix.multMatrix(worldMatrix)
-                mModelMatrix.multMatrix(localMatrix)
+                } else {
+                    localMatrixTranslate.translate(
+                        -shape.thickness().toFloat() / 2.0f,
+                        -shape.thickness().toFloat() / 2.0f,
+                        0.0f
+                    )
+                }
+                mModelMatrix.multMatrix(localMatrixRotate)
+                mModelMatrix.multMatrix(localMatrixTranslate)
+                mModelMatrix.multMatrix(localMatrixScale)
                 // get handle to shape's transformation matrix
                 mMVPMatrixHandle = gl.glGetUniformLocation(mProgram, "uMVPMatrix").also { matrixHandle ->
                     // Pass the projection and view transformation to the shader
@@ -195,29 +213,54 @@ fun createLine(_startX: Double, _startY: Double, _endX : Double, _endY : Double,
     angle = if(_endX - _startX < 0.0){-angle}else{angle}
 
     val dx = thickness / 2.0
+    val th = thickness
+//    val points = arrayOf(
+//        // Top part
+//        Point3D(x = -dx, y =    r, z = _layer), // bottom right
+//        Point3D(x = -dx, y = dx+r, z = _layer), // top left
+//        Point3D(x =  dx, y =    r, z = _layer), // bottom left
+//        Point3D(x =  dx, y =    r, z = _layer), // bottom right
+//        Point3D(x = -dx, y = dx+r, z = _layer), // top right
+//        Point3D(x =  dx, y = dx+r, z = _layer),  // top left
+//        // Main line
+//        Point3D(x = -dx, y =  0.0, z = _layer), // bottom right
+//        Point3D(x = -dx, y =    r, z = _layer), // top left
+//        Point3D(x =  dx, y =  0.0, z = _layer), // bottom left
+//        Point3D(x =  dx, y =  0.0, z = _layer), // bottom right
+//        Point3D(x = -dx, y =    r, z = _layer), // top right
+//        Point3D(x =  dx, y =    r, z = _layer),  // top left
+//        // Bottom part
+//        Point3D(x = -dx, y =  -dx, z = _layer), // bottom right
+//        Point3D(x = -dx, y =  0.0, z = _layer), // top left
+//        Point3D(x =  dx, y =  -dx, z = _layer), // bottom left
+//        Point3D(x =  dx, y =  -dx, z = _layer), // bottom right
+//        Point3D(x = -dx, y =  0.0, z = _layer), // top right
+//        Point3D(x =  dx, y =  0.0, z = _layer)  // top left
+//    )
     val points = arrayOf(
         // Top part
-        Point3D(x = -dx, y =    r, z = _layer), // bottom right
-        Point3D(x = -dx, y = dx+r, z = _layer), // top left
-        Point3D(x =  dx, y =    r, z = _layer), // bottom left
-        Point3D(x =  dx, y =    r, z = _layer), // bottom right
-        Point3D(x = -dx, y = dx+r, z = _layer), // top right
-        Point3D(x =  dx, y = dx+r, z = _layer),  // top left
+        Point3D(x = 0.0, y =    dx+r, z = _layer), // bottom left
+        Point3D(x = 0.0, y = dx+dx+r, z = _layer), // top left
+        Point3D(x =  th, y =    dx+r, z = _layer), // bottom right
+        Point3D(x =  th, y =    dx+r, z = _layer), // bottom right
+        Point3D(x = 0.0, y = dx+dx+r, z = _layer), // top right
+        Point3D(x =  th, y = dx+dx+r, z = _layer), // top left
         // Main line
-        Point3D(x = -dx, y =  0.0, z = _layer), // bottom right
-        Point3D(x = -dx, y =    r, z = _layer), // top left
-        Point3D(x =  dx, y =  0.0, z = _layer), // bottom left
-        Point3D(x =  dx, y =  0.0, z = _layer), // bottom right
-        Point3D(x = -dx, y =    r, z = _layer), // top right
-        Point3D(x =  dx, y =    r, z = _layer),  // top left
+        Point3D(x = 0.0, y =       dx, z = _layer), // bottom left
+        Point3D(x = 0.0, y =   dx + r, z = _layer), // top left
+        Point3D(x =  th, y =       dx, z = _layer), // bottom right
+        Point3D(x =  th, y =       dx, z = _layer), // bottom right
+        Point3D(x = 0.0, y =     dx+r, z = _layer), // top right
+        Point3D(x =  th, y =     dx+r, z = _layer),  // top left
         // Bottom part
-        Point3D(x = -dx, y =  -dx, z = _layer), // bottom right
-        Point3D(x = -dx, y =  0.0, z = _layer), // top left
-        Point3D(x =  dx, y =  -dx, z = _layer), // bottom left
-        Point3D(x =  dx, y =  -dx, z = _layer), // bottom right
-        Point3D(x = -dx, y =  0.0, z = _layer), // top right
-        Point3D(x =  dx, y =  0.0, z = _layer)  // top left
+        Point3D(x = 0.0, y =      0.0, z = _layer), // bottom left
+        Point3D(x = 0.0, y =       dx, z = _layer), // top left
+        Point3D(x =  th, y =      0.0, z = _layer), // bottom right
+        Point3D(x =  th, y =      0.0, z = _layer), // bottom right
+        Point3D(x = 0.0, y =       dx, z = _layer), // top left
+        Point3D(x =  th, y =       dx, z = _layer)  // top right
     )
+
     return Line(points, thickness, r, angle, Point3D(_startX, _startY, _layer), _color)
 }
 
