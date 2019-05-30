@@ -28,7 +28,7 @@ dependencies {
     compile "org.jogamp.gluegen:gluegen-rt-main:$jogl"
     compile "org.jogamp.jogl:jogl-all-main:$jogl"
 
-    def arrow_version = "0.9.0-SNAPSHOT"
+    def arrow_version = "0.9.0"
     compile "io.arrow-kt:arrow-core-data:$arrow_version"
     compile "io.arrow-kt:arrow-core-extensions:$arrow_version"
     compile "io.arrow-kt:arrow-syntax:$arrow_version"

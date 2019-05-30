@@ -12,6 +12,32 @@ class Point2D(val x : Double, val y : Double)
 class Color4F(val r: Float = 0.0f, val g: Float = 0.0f, val b: Float = 0.0f, val a: Float = 1.0f){
     fun toArray() = floatArrayOf(r, g, b, a)
 }
+class Triangle{
+    val first : Point3D
+    val second : Point3D
+    val third : Point3D
+    constructor(_first : Point3D, _second : Point3D, _third : Point3D){
+        first = _first
+        second = _second
+        third = _third
+    }
+    constructor(points : Array<Point3D>){
+        first = points[0]
+        second = points[1]
+        third = points[2]
+    }
+    fun flatten() : Array<Point3D>{
+        return arrayOf(first, second, third)
+    }
+    fun isInner() : Boolean{
+        // compute via wedge product, where
+        // U/\V = U.x * V.y - U.y * V.x
+        return ((second.x - first.x) * (third.y - second.y) - (second.y - first.y)*(third.x-second.y)) < 0
+    }
+    fun belongs(p: Point3D) : Boolean{
+        return false
+    }
+}
 
 abstract class Shape(protected var color4f : Color4F = Color4F(0.63671875f, 0.76953125f, 0.22265625f, 1.0f),
                      protected var colorShadow4f: Color4F = Color4F(0.0f,0.0f,0.0f,1.0f)

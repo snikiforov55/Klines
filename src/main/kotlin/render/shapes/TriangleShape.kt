@@ -1,12 +1,11 @@
 package render.shapes
 
-import com.jogamp.opengl.GL2
 import render.base.Color4F
 import render.base.Point3D
 import render.base.RenderBase
 import render.base.Shape
 
-class Triangle : Shape {
+class TriangleShape : Shape {
     override val points : Array<Point3D>
     constructor(){
         points = arrayOf(
@@ -39,6 +38,6 @@ class Triangle : Shape {
     }
 }
 
-class TriangleRender() : RenderBase<Triangle>() {
+class TriangleRender() : RenderBase<TriangleShape>() {
 
 }

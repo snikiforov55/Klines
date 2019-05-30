@@ -7,7 +7,6 @@ import com.jogamp.newt.event.KeyEvent
 import com.jogamp.newt.event.KeyListener
 import com.jogamp.newt.opengl.GLWindow
 import com.jogamp.opengl.*
-import com.jogamp.opengl.GL.GL_STENCIL_BUFFER_BIT
 import com.jogamp.opengl.math.Matrix4
 import com.jogamp.opengl.util.Animator
 import render.base.Color4F
@@ -30,31 +29,32 @@ class Viewer : GLEventListener, KeyListener {
     private val circleRender   = CircleRender()
     private val lineRender     = LineRender()
     private var outliner : Option<Outline> = None
+    private val polygonRender = PolygonRender()
 
     private val mProjectionMatrix = Matrix4()
     private val mViewMatrix       = Matrix4()
     private val mMVPMatrix        = Matrix4()
 
-    private val triangles : Array<Triangle> = arrayOf(
-        Triangle(Point3D(0.50, 0.50, 0.0),
+    private val triangleShapes : Array<TriangleShape> = arrayOf(
+        TriangleShape(Point3D(0.50, 0.50, 0.0),
             Point3D(-0.2,-0.15, 0.0),
             Point3D( 0.0, 0.3, 0.0),
             Point3D( 0.2,-0.1, 0.0),
             Color4F( 0.8f,0.1f,0.1f,1.0f),
             4.0),
-        Triangle(Point3D(0.48, 0.48, 0.0),
+        TriangleShape(Point3D(0.48, 0.48, 0.0),
             Point3D(-0.2,-0.15, 0.0),
             Point3D( 0.0, 0.3, 0.0),
             Point3D( 0.2,-0.1, 0.0),
             Color4F( 0.5f,0.1f,0.1f,1.0f),
             3.0),
-        Triangle(Point3D(0.46, 0.46, 0.0),
+        TriangleShape(Point3D(0.46, 0.46, 0.0),
             Point3D(-0.2,-0.15, 0.0),
             Point3D( 0.0, 0.3, 0.0),
             Point3D( 0.2,-0.1, 0.0),
             Color4F( 0.3f,0.1f,0.1f,1.0f),
             2.0),
-        Triangle(Point3D(0.44, 0.44, 0.0),
+        TriangleShape(Point3D(0.44, 0.44, 0.0),
             Point3D(-0.2,-0.15, 0.0),
             Point3D( 0.0, 0.3, 0.0),
             Point3D( 0.2,-0.1, 0.0),
@@ -84,6 +84,25 @@ class Viewer : GLEventListener, KeyListener {
         createLine(0.7, -0.6,  0.6,  -0.2, 0.06, 1.0, Color4F(0.3f, 0.3f, 0.7f, 1.0f)),
         createLine(0.4, -0.8,  0.4,  -0.0, 0.06, 3.0, Color4F(0.3f, 0.3f, 0.7f, 1.0f))
     )
+    val polygon = createPolygon(arrayOf(
+        Point3D(-0.8, 0.0, 1.0),
+        Point3D(-0.8, 0.1, 1.0),
+        Point3D(-0.7, 0.2, 1.0),
+        Point3D(-0.6, 0.1, 1.0),
+        Point3D(-0.6, 0.0, 1.0)
+    ), Color4F(0.6f, 0.2f, 0.1f, 1.0f),
+        1.0)
+    val polygon1 = createPolygon(arrayOf(
+        Point3D(0.0, 0.0, 1.0),
+        Point3D(0.1, 0.1, 1.0),
+        Point3D(-0.1, 0.2, 1.0),
+        Point3D(0.1, 0.3, 1.0),
+        Point3D(0.3, 0.1, 1.0),
+        Point3D(0.2, 0.0, 1.0)
+    ), Color4F(0.2f, 0.4f, 0.1f, 1.0f),
+        1.0)
+
+
     private var shift_x : Double = 0.0
     private var shift_y : Double = 0.0
 
@@ -121,6 +140,7 @@ class Viewer : GLEventListener, KeyListener {
         circleRender.doInit(gl)
         lineRender.doInit(gl)
         outliner = Some(Outline(gl))
+        polygonRender.doInit(gl)
     }
 
 //    private fun initDebug(gl: GL4) {
@@ -164,7 +184,7 @@ class Viewer : GLEventListener, KeyListener {
             glClear(GL2.GL_DEPTH_BUFFER_BIT or GL2.GL_COLOR_BUFFER_BIT or GL2.GL_STENCIL_BUFFER_BIT)
 
             triangleRender.useProgram(gl)
-            triangles.forEach { t -> triangleRender.draw(gl = gl, mvpMatrix = mMVPMatrix.matrix, shape = t) }
+            triangleShapes.forEach { t -> triangleRender.draw(gl = gl, mvpMatrix = mMVPMatrix.matrix, shape = t) }
 
             circleRender.useProgram(gl)
             circles.forEach { c ->
@@ -173,6 +193,10 @@ class Viewer : GLEventListener, KeyListener {
                 circleRender.draw(gl = gl, mvpMatrix = mMVPMatrix.matrix, shape = c)
             }
             circleRender.draw(gl = gl, mvpMatrix = mMVPMatrix.matrix, shape = center)
+
+            polygonRender.useProgram(gl)
+            polygon.map{ p->polygonRender.draw(gl, mMVPMatrix.matrix, p) }
+            polygon1.map{ p->polygonRender.draw(gl, mMVPMatrix.matrix, p) }
 
             outliner.map {
                 it.outline(gl, mMVPMatrix, Color4F(1.0f, 1.0f, 1.0f, 1.0f),
