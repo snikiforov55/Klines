@@ -1,13 +1,9 @@
 package render.shapes
 
 
-import com.jogamp.opengl.GL2
 import arrow.core.Option
 import arrow.core.Some
 import arrow.core.None
-import com.jogamp.opengl.GL
-import com.jogamp.opengl.GLES2
-import com.jogamp.opengl.GLES3
 import render.base.*
 
 
@@ -62,54 +58,4 @@ class Polygon : Shape {
         this.layer = layer
     }
 }
-
-class PolygonRender() : RenderBase<Polygon>() {
-    override fun draw(gl: GL2, mvpMatrix: FloatArray, shape: Polygon, isShadow: Int) {
-
-        // get handle to vertex shader's vPosition member
-        gl.glGetAttribLocation(mProgram, "vPosition").also {
-
-            // Enable a handle to the triangle vertices
-            gl.glEnableVertexAttribArray(it)
-
-            // Prepare the triangle coordinate data
-            gl.glVertexAttribPointer(
-                it,
-                CoordsPerVertex,
-                GLES3.GL_FLOAT,
-                false,
-                vertexStride,
-                shape.vertexBuffer()
-            )
-            // get handle to fragment shader's vColor member
-            mColorHandle = gl.glGetUniformLocation(mProgram, "vColor").also { colorHandle ->
-                // Set color for drawing the triangle
-                gl.glUniform4fv(colorHandle, 1, shape.colorBuffer(), 0)
-            }
-            mModelMatrix.loadIdentity()
-            mTranslateMatrix.loadIdentity()
-            mTranslateMatrix.translate(
-                shape.shift().x.toFloat(),
-                shape.shift().y.toFloat(),
-                shape.shift().z.toFloat()
-            )
-            mModelMatrix.multMatrix(mvpMatrix)
-            mModelMatrix.multMatrix(mTranslateMatrix)
-
-            // get handle to shape's transformation matrix
-            mMVPMatrixHandle = gl.glGetUniformLocation(mProgram, "uMVPMatrix").also { matrixHandle ->
-                // Pass the projection and view transformation to the shader
-                gl.glUniformMatrix4fv(matrixHandle, 1, false, mModelMatrix.matrix, 0)
-            }
-            gl.glEnable(GLES2.GL_CULL_FACE)
-            gl.glEnable(GLES2.GL_DEPTH_TEST)
-            gl.glEnable(GLES2.GL_BLEND)
-            gl.glBlendFunc(GLES2.GL_SRC_ALPHA, GLES2.GL_ONE_MINUS_SRC_ALPHA)
-            gl.glFrontFace(GL.GL_CW)
-            // Draw the triangle
-            gl.glDrawArrays(GLES3.GL_TRIANGLES, 0, shape.vertexCount())
-            // Disable vertex array
-            gl.glDisableVertexAttribArray(it)
-        }
-    }
-}
+class PolygonRender : RenderBase<Polygon>()

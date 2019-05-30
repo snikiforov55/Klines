@@ -96,8 +96,9 @@ class Viewer : GLEventListener, KeyListener {
         Point3D(0.0, 0.0, 1.0),
         Point3D(0.1, 0.1, 1.0),
         Point3D(-0.1, 0.2, 1.0),
-        Point3D(0.1, 0.3, 1.0),
-        Point3D(0.3, 0.1, 1.0),
+        Point3D(0.2, 0.2, 1.0),
+        Point3D(0.1, 0.1, 1.0),
+        Point3D(0.2, 0.1, 1.0),
         Point3D(0.2, 0.0, 1.0)
     ), Color4F(0.2f, 0.4f, 0.1f, 1.0f),
         1.0)
@@ -175,7 +176,7 @@ class Viewer : GLEventListener, KeyListener {
 //        }
 //    }
 
-    override fun display(drawable: GLAutoDrawable): Unit {
+    override fun display(drawable: GLAutoDrawable){
         val gl = drawable.gl.gL2
         with(gl) {
             // Set Background color
@@ -216,7 +217,7 @@ class Viewer : GLEventListener, KeyListener {
         }
     }
 
-    override fun reshape(drawable: GLAutoDrawable, x: Int, y: Int, width: Int, height: Int): Unit {
+    override fun reshape(drawable: GLAutoDrawable, x: Int, y: Int, width: Int, height: Int){
 
         with(drawable.gl.gL2) {
             /**
@@ -249,7 +250,7 @@ class Viewer : GLEventListener, KeyListener {
         }
     }
 
-    override fun dispose(drawable: GLAutoDrawable): Unit {
+    override fun dispose(drawable: GLAutoDrawable){
 
 //        with(drawable.gl.gL4) {
 //
@@ -271,14 +272,14 @@ class Viewer : GLEventListener, KeyListener {
 
 
     override fun keyPressed(e: KeyEvent) {
-        if (e.keyCode === KeyEvent.VK_ESCAPE) {
+        if (e.keyCode == KeyEvent.VK_ESCAPE) {
             animator.remove(window)
             window.destroy()
         }
-        if(e.keyCode === KeyEvent.VK_LEFT){
+        if(e.keyCode == KeyEvent.VK_LEFT){
             shift_x -= 0.01
         }
-        if(e.keyCode === KeyEvent.VK_RIGHT){
+        if(e.keyCode == KeyEvent.VK_RIGHT){
             shift_x += 0.01
         }
         lines.forEach { c ->
