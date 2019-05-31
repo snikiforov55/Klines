@@ -6,6 +6,7 @@ import org.junit.Test
 import render.base.Color4F
 import render.base.Point3D
 import render.base.Triangle
+import render.base.Vector2
 import render.shapes.createPolygon
 
 class PolygonTest {
@@ -101,5 +102,13 @@ class PolygonTest {
             Point3D(-1.0, 2.0, 0.0),
             Point3D(2.0, 2.0, 0.0))
         assert(triangle.isInner())
+    }
+    @Test
+    fun zipNext(){
+        val points = listOf(Point3D(1.0, 1.0, 0.0),
+            Point3D(-1.0, 2.0, 0.0),
+            Point3D(2.0, 2.0, 0.0))
+        val vect = points.zipWithNext{p1,p2 -> Vector2(p1, p2)}
+        assert(vect.size == 2)
     }
 }
