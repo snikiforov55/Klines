@@ -86,21 +86,27 @@ class Viewer : GLEventListener, KeyListener {
     )
     private val polygons = arrayOf(
 
-        createPolygon(arrayOf(Point3D(-0.8, 0.0, 1.0),
-            Point3D(-0.8, 0.1, 1.0),
-            Point3D(-0.7, 0.2, 1.0),
-            Point3D(-0.6, 0.1, 1.0),
-            Point3D(-0.6, 0.0, 1.0)
-        ), Color4F(0.6f, 0.2f, 0.1f, 1.0f),1.0),
-        createPolygon(arrayOf(
-            Point3D(0.0, 0.0, 1.0),
-            Point3D(0.1, 0.1, 1.0),
-            Point3D(-0.1, 0.2, 1.0),
-            Point3D(0.2, 0.2, 1.0),
-            Point3D(0.101, 0.1, 1.0),
-            Point3D(0.2, 0.1, 1.0),
-            Point3D(0.2, 0.0, 1.0)
-            ), Color4F(0.2f, 0.4f, 0.1f, 1.0f),1.0)
+        createPolygon(
+            Point3D(0.0, 0.4, 1.0),
+            arrayOf(Point3D(-0.8, 0.0, 1.0),
+                Point3D(-0.8, 0.1, 1.0),
+                Point3D(-0.7, 0.2, 1.0),
+                Point3D(-0.6, 0.1, 1.0),
+                Point3D(-0.6, 0.0, 1.0)
+            ), Color4F(0.6f, 0.2f, 0.1f, 1.0f), 1.0
+        ),
+        createPolygon(
+            Point3D(0.0, 0.6, 1.0),
+            arrayOf(
+                Point3D(0.0, 0.0, 1.0),
+                Point3D(0.1, 0.1, 1.0),
+                Point3D(-0.1, 0.2, 1.0),
+                Point3D(0.2, 0.2, 1.0),
+                Point3D(0.101, 0.1, 1.0),
+                Point3D(0.2, 0.1, 1.0),
+                Point3D(0.2, 0.0, 1.0)
+                ), Color4F(0.2f, 0.4f, 0.1f, 1.0f), 1.0
+        )
     )
     private var shift_x : Double = 0.0
     private var shift_y : Double = 0.0

@@ -21,7 +21,12 @@ while true
   if no triangles were made in the above for loop
     break;
  */
-fun createPolygon(points  : Array<Point3D>, _color : Color4F, _layer : Double) : Option<Polygon> {
+fun createPolygon(
+    shift: Point3D,
+    points: Array<Point3D>,
+    _color: Color4F,
+    _layer: Double
+) : Option<Polygon> {
     var tail = points.toMutableList()
     val res = mutableListOf<Triangle>()
     var cycle : Int = tail.size
@@ -46,15 +51,24 @@ fun createPolygon(points  : Array<Point3D>, _color : Color4F, _layer : Double) :
         cycle -= 1
     }
     return  if(res.isEmpty())  None
-            else Some(Polygon(pts = res.map{t->t.flatten()}.toTypedArray().flatten().toTypedArray(),
-        color = _color, layer = _layer))
+            else Some(Polygon(shift = shift,
+        pts = res.map{t->t.flatten()}.toTypedArray().flatten().toTypedArray(), color = _color, layer = _layer
+    ))
 }
 
-class Polygon(pts : Array<Point3D>, color : Color4F, layer : Double = 1.0) : Shape(color) {
+class Polygon(
+    shift: Point3D,
+    pts: Array<Point3D>,
+    color: Color4F,
+    layer: Double = 1.0
+) : Shape(color) {
     override val points  : Array<Point3D> = pts
     init {
-        doInit()
         this.layer = layer
+        this.shift = shift
+        doInit()
+
+
     }
 }
 class PolygonRender : RenderBase<Polygon>()
