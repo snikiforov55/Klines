@@ -84,26 +84,24 @@ class Viewer : GLEventListener, KeyListener {
         createLine(0.7, -0.6,  0.6,  -0.2, 0.06, 1.0, Color4F(0.3f, 0.3f, 0.7f, 1.0f)),
         createLine(0.4, -0.8,  0.4,  -0.0, 0.06, 3.0, Color4F(0.3f, 0.3f, 0.7f, 1.0f))
     )
-    val polygon = createPolygon(arrayOf(
-        Point3D(-0.8, 0.0, 1.0),
-        Point3D(-0.8, 0.1, 1.0),
-        Point3D(-0.7, 0.2, 1.0),
-        Point3D(-0.6, 0.1, 1.0),
-        Point3D(-0.6, 0.0, 1.0)
-    ), Color4F(0.6f, 0.2f, 0.1f, 1.0f),
-        1.0)
-    val polygon1 = createPolygon(arrayOf(
-        Point3D(0.0, 0.0, 1.0),
-        Point3D(0.1, 0.1, 1.0),
-        Point3D(-0.1, 0.2, 1.0),
-        Point3D(0.2, 0.2, 1.0),
-        Point3D(0.1, 0.1, 1.0),
-        Point3D(0.2, 0.1, 1.0),
-        Point3D(0.2, 0.0, 1.0)
-    ), Color4F(0.2f, 0.4f, 0.1f, 1.0f),
-        1.0)
+    private val polygons = arrayOf(
 
-
+        createPolygon(arrayOf(Point3D(-0.8, 0.0, 1.0),
+            Point3D(-0.8, 0.1, 1.0),
+            Point3D(-0.7, 0.2, 1.0),
+            Point3D(-0.6, 0.1, 1.0),
+            Point3D(-0.6, 0.0, 1.0)
+        ), Color4F(0.6f, 0.2f, 0.1f, 1.0f),1.0),
+        createPolygon(arrayOf(
+            Point3D(0.0, 0.0, 1.0),
+            Point3D(0.1, 0.1, 1.0),
+            Point3D(-0.1, 0.2, 1.0),
+            Point3D(0.2, 0.2, 1.0),
+            Point3D(0.101, 0.1, 1.0),
+            Point3D(0.2, 0.1, 1.0),
+            Point3D(0.2, 0.0, 1.0)
+            ), Color4F(0.2f, 0.4f, 0.1f, 1.0f),1.0)
+    )
     private var shift_x : Double = 0.0
     private var shift_y : Double = 0.0
 
@@ -196,8 +194,7 @@ class Viewer : GLEventListener, KeyListener {
             circleRender.draw(gl = gl, mvpMatrix = mMVPMatrix.matrix, shape = center)
 
             polygonRender.useProgram(gl)
-            polygon.map{ p->polygonRender.draw(gl, mMVPMatrix.matrix, p) }
-            polygon1.map{ p->polygonRender.draw(gl, mMVPMatrix.matrix, p) }
+            polygons.forEach {polygon->polygon.map{ p->polygonRender.draw(gl, mMVPMatrix.matrix, p) }}
 
             outliner.map {
                 it.outline(gl, mMVPMatrix, Color4F(1.0f, 1.0f, 1.0f, 1.0f),
