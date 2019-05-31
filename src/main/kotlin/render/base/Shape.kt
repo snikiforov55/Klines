@@ -67,10 +67,8 @@ class Triangle{
 }
 
 abstract class Shape(protected var color4f : Color4F = Color4F(0.63671875f, 0.76953125f, 0.22265625f, 1.0f),
-                     protected var colorShadow4f: Color4F = Color4F(0.0f,0.0f,0.0f,1.0f)
+                     private var colorShadow4f: Color4F = Color4F(0.0f,0.0f,0.0f,1.0f)
 ): ShapeInterface {
-
-    protected var origin : Point3D = Point3D(0.0, 0.0, 0.0)
     protected var shift  : Point3D = Point3D(0.0, 0.0, 0.0)
 
     protected var layer  = 0.0
