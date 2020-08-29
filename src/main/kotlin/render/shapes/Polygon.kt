@@ -10,6 +10,7 @@ import com.jogamp.opengl.GLES2
 import render.base.*
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.nio.FloatBuffer
 
 /*
 https://www.gamedev.net/articles/programming/graphics/polygon-triangulation-r3334
@@ -34,13 +35,13 @@ fun createPolygon(
     points: Array<Point3D>,
     _color: Color4F,
     _layer: Double
-) : Option<Polygon> {
+) : Option<ShapeWrapper<Polygon>> {
     var tail = points.toMutableList()
     val res = mutableListOf<Triangle>()
     var cycle : Int = tail.size
     while(tail.size > 2 || cycle < 0){ // Check if there is enough vertexes and if algorithm is not in endless loop
         val triad = tail.take(3).toTypedArray()
-        val triangle = Triangle(triad)
+        val triangle = Triangle(triad[0], triad[1], triad[2])
         tail = tail.drop(3).toMutableList()
         val inner = triangle.isInner()
         val otherNotIn = tail.filter{p -> triangle.belongs(p)}.isEmpty()
@@ -59,19 +60,20 @@ fun createPolygon(
         cycle -= 1
     }
     return  if(res.isEmpty())  None
-            else Some(Polygon(shift = shift,
-        pts = res.map{t->t.flatten()}.toTypedArray().flatten().toTypedArray(), color = _color, layer = _layer
-    ))
+            else Some(ShapeWrapper( shape = Polygon(shift = shift,
+        points = res.map{t->t.points()}.toTypedArray().flatten().toTypedArray(),
+        color = _color, layer = _layer.toInt()
+    ), color4f = _color))
 }
 
 class Polygon(
-    shift: Point3D,
-    pts: Array<Point3D>,
-    color: Color4F,
-    layer: Double = 1.0
-) : ShapeWrapper(color) {
-    override val points  : Array<Point3D> = pts
-    val textureBuffer =  // (number of coordinate values * 4 bytes per float)
+    val shift: Point3D,
+    private val points: Array<Point3D>,
+    val color: Color4F,
+    val layer: Int = 1
+) : Shape(), ShapeInterface {
+
+    val textureBuffer: FloatBuffer =  // (number of coordinate values * 4 bytes per float)
         ByteBuffer.allocateDirect(points.size * 2 * 4).run {
             // use the device hardware's native byte order
             order(ByteOrder.nativeOrder())
@@ -79,16 +81,13 @@ class Polygon(
             val tex = List(size = points.size / 3){listOf(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f)}.flatten().toFloatArray()
             asFloatBuffer().apply {
                 // add the coordinates to the FloatBuffer
-                tex.forEach { p -> put(p.toFloat()) }
+                tex.forEach { p -> put(p) }
                 // set the buffer to read the first coordinate
                 position(0)
         }
     }
-    init {
-        this.layer = layer.toInt()
-        this.shift = shift
-        doInit()
-    }
+
+    override fun points() = points
 }
 class PolygonRender : RenderBase<Polygon>() {
     /**
@@ -147,7 +146,7 @@ class PolygonRender : RenderBase<Polygon>() {
                 }
     """
 
-    override fun draw(gl : GL2, mvpMatrix: FloatArray, shape : Polygon, isShadow : Int) {
+    override fun draw(gl : GL2, mvpMatrix: FloatArray, shapeWrapper : ShapeWrapper<Polygon>, isShadow : Int) {
         // get handle to vertex shader's vPosition member
         gl.glGetAttribLocation(mProgram, "vPosition").also { pos ->
 
@@ -161,7 +160,7 @@ class PolygonRender : RenderBase<Polygon>() {
                 GL2ES2.GL_FLOAT,
                 false,
                 vertexStride,
-                shape.vertexBuffer()
+                shapeWrapper.vertexBuffer()
             )
             gl.glGetAttribLocation(mProgram, "a_TexCoordinate").also { th ->
                 // Enable a handle to the triangle vertices
@@ -173,19 +172,19 @@ class PolygonRender : RenderBase<Polygon>() {
                     GL2ES2.GL_FLOAT,
                     false,
                     (2)*4,//vertexStride,
-                    shape.textureBuffer
+                    shapeWrapper.shape.textureBuffer
                 )
                 // get handle to fragment shader's vColor member
                 mColorHandle = gl.glGetUniformLocation(mProgram, "vColor").also { colorHandle ->
                     // Set color for drawing the triangle
-                    gl.glUniform4fv(colorHandle, 1, shape.colorBuffer(), 0)
+                    gl.glUniform4fv(colorHandle, 1, shapeWrapper.colorBuffer(), 0)
                 }
                 mModelMatrix.loadIdentity()
                 mTranslateMatrix.loadIdentity()
                 mTranslateMatrix.translate(
-                    shape.shift().x.toFloat(),
-                    shape.shift().y.toFloat(),
-                    shape.shift().z.toFloat()
+                    shapeWrapper.shift().x.toFloat(),
+                    shapeWrapper.shift().y.toFloat(),
+                    shapeWrapper.shift().z.toFloat()
                 )
                 mModelMatrix.multMatrix(mvpMatrix)
                 mModelMatrix.multMatrix(mTranslateMatrix)
@@ -201,7 +200,7 @@ class PolygonRender : RenderBase<Polygon>() {
                 gl.glEnable(GLES2.GL_DEPTH_TEST)
                 gl.glFrontFace(GL.GL_CW)
                 // Draw the triangle
-                gl.glDrawArrays(GL2ES2.GL_TRIANGLES, 0, shape.vertexCount())
+                gl.glDrawArrays(GL2ES2.GL_TRIANGLES, 0, shapeWrapper.vertexCount())
                 gl.glDisableVertexAttribArray(th)
                 gl.glDisableVertexAttribArray(pos)
             }

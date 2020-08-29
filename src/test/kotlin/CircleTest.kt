@@ -15,7 +15,7 @@ class CircleTest {
         val s = circle.shift()
         assert(s.x == -1.0)
         assert(s.y ==  0.5)
-        assert(s.y ==  1.0)
+        assert(s.z ==  1.0)
     }
 
     @Test
@@ -34,11 +34,12 @@ class CircleTest {
 
     @Test
     fun vertexBuffer() {
-        assert(circle.vertexBuffer().remaining() == (circle.bufferSizeFloat() * 4))
+        val rem = circle.vertexBuffer().remaining()
+        assert( rem == (circle.bufferSizeFloat()))
     }
 
     @Test
     fun vertexCount() {
-        assert(circle.vertexCount() == 9)
+        assert(circle.vertexCount() == 6)
     }
 }

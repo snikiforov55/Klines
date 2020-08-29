@@ -5,8 +5,8 @@ import render.shapes.Polygon
 import org.junit.Test
 import render.base.Color4F
 import render.base.Point3D
-import render.base.Triangle
 import render.base.Vector2
+import render.shapes.Triangle
 import render.shapes.createPolygon
 
 class PolygonTest {
@@ -15,14 +15,14 @@ class PolygonTest {
          arrayOf(Point3D(0.0, 0.0, 0.0),
             Point3D(1.0, 0.0, 0.0),
             Point3D(1.0, 1.0, 0.0   )
-        ), Color4F(), 1.0
+        ), Color4F(), 1
     )
 
     val triangle = Triangle(Point3D(0.0, 2.0, 0.0), Point3D(3.0, 4.0, 0.0), Point3D(2.0, 1.0, 0.0))
 
     @Test
     fun flatten() {
-        val vertexes = polygon.flatten()
+        val vertexes = polygon.points()
         //assert(vertexes.size == 9)
     }
     @Test

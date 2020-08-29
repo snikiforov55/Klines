@@ -99,7 +99,7 @@ class LineRender : RenderBase<Line>(){
                 position(0)
             }
         }
-    override fun draw(gl : GL2, mvpMatrix: FloatArray, shape : ShapeWrapper<Line>, isShadow : Int) {
+    override fun draw(gl : GL2, mvpMatrix: FloatArray, shapeWrapper : ShapeWrapper<Line>, isShadow : Int) {
         // get handle to vertex shader's vPosition member
         gl.glGetAttribLocation(mProgram, "vPosition").also { pos ->
 
@@ -113,7 +113,7 @@ class LineRender : RenderBase<Line>(){
                 GL2ES2.GL_FLOAT,
                 false,
                 vertexStride,
-                shape.vertexBuffer()
+                shapeWrapper.vertexBuffer()
             )
             gl.glGetAttribLocation(mProgram, "a_TexCoordinate").also { th ->
                 // Enable a handle to the triangle vertices
@@ -130,11 +130,11 @@ class LineRender : RenderBase<Line>(){
                 // get handle to fragment shader's vColor member
                 mColorHandle = gl.glGetUniformLocation(mProgram, "vColor").also { colorHandle ->
                     // Set color for drawing the triangle
-                    gl.glUniform4fv(colorHandle, 1, shape.colorBuffer(), 0)
+                    gl.glUniform4fv(colorHandle, 1, shapeWrapper.colorBuffer(), 0)
                 }
                 gl.glGetUniformLocation(mProgram, "vColorShadow").also { colorHandle ->
                     // Set color for drawing the triangle
-                    gl.glUniform4fv(colorHandle, 1, shape.colorShadowBuffer(), 0)
+                    gl.glUniform4fv(colorHandle, 1, shapeWrapper.colorShadowBuffer(), 0)
                 }
                 gl.glGetUniformLocation(mProgram, "isShadow").also { shadowHandle ->
                     // Set color for drawing the triangle
@@ -142,33 +142,33 @@ class LineRender : RenderBase<Line>(){
                 }
                 gl.glGetUniformLocation(mProgram, "a_RadiusThickness").also { r ->
                     gl.glEnableVertexAttribArray(r)
-                    gl.glUniform2f(r, shape.r().toFloat(), shape.thickness().toFloat())
+                    gl.glUniform2f(r, shapeWrapper.shape.r.toFloat(), shapeWrapper.shape.thickness.toFloat())
                 }
                 mModelMatrix.loadIdentity()
                 mModelMatrix.multMatrix(mvpMatrix)
 
                 val worldMatrix = Matrix4()
                 worldMatrix.loadIdentity()
-                worldMatrix.translate(shape.shift().x.toFloat(),shape.shift().y.toFloat(),shape.shift().z.toFloat())
-                worldMatrix.translate(shape.start().x.toFloat(),shape.start().y.toFloat(),0.0f)
+                worldMatrix.translate(shapeWrapper.shift().x.toFloat(),shapeWrapper.shift().y.toFloat(),shapeWrapper.shift().z.toFloat())
+                worldMatrix.translate(shapeWrapper.shape.start.x.toFloat(),shapeWrapper.shape.start.y.toFloat(),0.0f)
                 mModelMatrix.multMatrix(worldMatrix)
 
-                mModelMatrix.rotate(shape.angleRad().toFloat(), 0.0f, 0.0f, 1.0f)
+                mModelMatrix.rotate(shapeWrapper.shape.angle.toFloat(), 0.0f, 0.0f, 1.0f)
                 if(isShadow === 1){
                     val dx = 0.01f
-                    val scaleX = 1.0f + dx/shape.thickness().toFloat()
-                    val scaleY = 1.0f + dx/shape.r().toFloat()
+                    val scaleX = 1.0f + dx/shapeWrapper.shape.thickness.toFloat()
+                    val scaleY = 1.0f + dx/shapeWrapper.shape.r.toFloat()
                     mModelMatrix.translate(
-                        -shape.thickness().toFloat() / 2.0f - dx/2.0f,
-                        -shape.thickness().toFloat() / 2.0f - dx/2.0f,
+                        -shapeWrapper.shape.thickness.toFloat() / 2.0f - dx/2.0f,
+                        -shapeWrapper.shape.thickness.toFloat() / 2.0f - dx/2.0f,
                         0.0f
                     )
                     mModelMatrix.scale(scaleX, scaleY, 1.0f)//(1.2 * shape.thickness()/shape.r()).toFloat(), 1.0f)
 
                 } else {
                     mModelMatrix.translate(
-                        -shape.thickness().toFloat() / 2.0f,
-                        -shape.thickness().toFloat() / 2.0f,
+                        -shapeWrapper.shape.thickness.toFloat() / 2.0f,
+                        -shapeWrapper.shape.thickness.toFloat() / 2.0f,
                         0.0f
                     )
                 }
@@ -181,7 +181,7 @@ class LineRender : RenderBase<Line>(){
                 gl.glEnable(GLES2.GL_CULL_FACE)
                 gl.glFrontFace(GL_CW)
                 // Draw the triangle
-                gl.glDrawArrays(GL2ES2.GL_TRIANGLES, 0, shape.vertexCount())
+                gl.glDrawArrays(GL2ES2.GL_TRIANGLES, 0, shapeWrapper.vertexCount())
                 gl.glDisableVertexAttribArray(th)
                 gl.glDisableVertexAttribArray(pos)
             }
@@ -190,48 +190,18 @@ class LineRender : RenderBase<Line>(){
 }
 
 fun createLine(_startX: Double, _startY: Double, _endX : Double, _endY : Double, _thickness : Double,
-               _layer : Double, _color : Color4F) : Line{
-
-    val r = max(0.001, sqrt( (_endX - _startX)*(_endX - _startX) + (_endY - _startY)*(_endY - _startY)))
-    val thickness = min(r/2.0, _thickness)
-    var angle = -acos((_endY - _startY)/r)
-    angle = if(_endX - _startX < 0.0){-angle}else{angle}
-
-    val dx = thickness / 2.0
-    val points = arrayOf(
-        // Top part
-        Point3D(x = 0.0,        y =    dx+r, z = _layer), // bottom left
-        Point3D(x = 0.0,        y = dx+dx+r, z = _layer), // top left
-        Point3D(x = thickness,  y =    dx+r, z = _layer), // bottom right
-        Point3D(x = thickness,  y =    dx+r, z = _layer), // bottom right
-        Point3D(x = 0.0,        y = dx+dx+r, z = _layer), // top right
-        Point3D(x = thickness,  y = dx+dx+r, z = _layer), // top left
-        // Main line
-        Point3D(x = 0.0,        y =       dx, z = _layer), // bottom left
-        Point3D(x = 0.0,        y =   dx + r, z = _layer), // top left
-        Point3D(x = thickness,  y =       dx, z = _layer), // bottom right
-        Point3D(x = thickness,  y =       dx, z = _layer), // bottom right
-        Point3D(x = 0.0,        y =     dx+r, z = _layer), // top right
-        Point3D(x = thickness,  y =     dx+r, z = _layer),  // top left
-        // Bottom part
-        Point3D(x = 0.0,        y =      0.0, z = _layer), // bottom left
-        Point3D(x = 0.0,        y =       dx, z = _layer), // top left
-        Point3D(x = thickness,  y =      0.0, z = _layer), // bottom right
-        Point3D(x = thickness,  y =      0.0, z = _layer), // bottom right
-        Point3D(x = 0.0,        y =       dx, z = _layer), // top left
-        Point3D(x = thickness,  y =       dx, z = _layer)  // top right
-    )
-
-    return Line(points, thickness, r, angle, Point3D(_startX, _startY, _layer), _layer.toInt(), _color)
+               _layer : Double, _color : Color4F) : ShapeWrapper<Line>{
+    val r = max(0.001, length2D(_startX, _startY, _endX, _endY))
+    return ShapeWrapper(shape = Line(_startX, _startY, _endX, _endY, min(r/2.0, _thickness), _layer.toInt(), _color),
+        color4f = _color)
 }
 
 data class Line(val startX: Double, val startY: Double, val endX : Double, val endY : Double,
                 val thickness : Double = 0.01,
                 val layer : Int,
                 val color : Color4F) : Shape(), ShapeInterface {
-    private var start : Point3D = Point3D(startX, startY, layer.toDouble())
-    val r = max(0.001, sqrt( (endX - startX)*(endX - startX) + (endY - startY)*(endY - startY)))
-    val thicknessActual = min(r/2.0, thickness)
+    var start : Point3D = Point3D(startX, startY, layer.toDouble())
+    val r = max(0.001, length2D(startX, startY, endX, endY))
     var angle = {
         val aa = -acos((endY - startY) / r)
         if (endX - startX < 0.0) {
@@ -240,7 +210,7 @@ data class Line(val startX: Double, val startY: Double, val endX : Double, val e
             aa
         }
     }.invoke()
-    val points : Array<Point3D> = {
+    private val points : Array<Point3D> = {
         val dx = thickness / 2.0
         val z = layer.toDouble()
         arrayOf(
@@ -267,15 +237,5 @@ data class Line(val startX: Double, val startY: Double, val endX : Double, val e
             Point3D(x = thickness,  y =       dx, z = z)  // top right
         )
     }.invoke()
-
-    fun thickness() = thickness
-    fun r() = r
-    fun angleRad() = angle
-    fun angleDeg() = angle*180.0/PI
-    fun start() = start
-
-    init {
-        layer = _layer
-        doInit()
-    }
+    override fun points() = points
 }

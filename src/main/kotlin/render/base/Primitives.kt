@@ -1,5 +1,7 @@
 package render.base
 
+import kotlin.math.sqrt
+
 class Point3D(val x: Double, val y : Double, val z : Double){
     fun flatten() : List<Double> = listOf(x, y, z)
 }
@@ -15,5 +17,7 @@ class Vector2(b : Point3D, e : Point3D){
 fun dot(v1 : Vector2, v2 : Vector2) : Double{
     return v1.x*v2.x+v1.y*v2.y
 }
+fun length2D(startX: Double, startY: Double, endX : Double, endY : Double) : Double =
+    sqrt( (endX - startX)*(endX - startX) + (endY - startY)*(endY - startY))
 
 

@@ -1,26 +1,17 @@
 package render.shapes
 
-import render.base.Point3D
-import render.base.Vector2
-import render.base.dot
+import render.base.*
 
-class Triangle{
-    val first : Point3D
-    val second : Point3D
-    val third : Point3D
-    constructor(_first : Point3D, _second : Point3D, _third : Point3D){
-        first = _first
-        second = _second
-        third = _third
-    }
-    constructor(points : Array<Point3D>){
-        first = points[0]
-        second = points[1]
-        third = points[2]
-    }
-    fun flatten() : Array<Point3D>{
-        return arrayOf(first, second, third)
-    }
+class TriangleRender : RenderBase<Triangle>(){
+
+}
+
+data class Triangle(val first : Point3D,
+                   val second : Point3D,
+                   val third : Point3D,
+                   val layer : Int = 1,
+                   val color : Color4F = Color4F()): Shape(), ShapeInterface{
+    private val points : Array<Point3D> = arrayOf(first, second, third)
     fun isInner() : Boolean{
         // compute via wedge product, where
         // U/\V = U.x * V.y - U.y * V.x
@@ -47,4 +38,6 @@ class Triangle{
         // Check if point is in triangle
         return (u >= 0) && (v >= 0) && (u + v < 1)
     }
+    override fun points(): Array<Point3D> = points
 }
+

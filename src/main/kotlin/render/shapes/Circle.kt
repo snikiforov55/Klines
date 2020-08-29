@@ -158,12 +158,13 @@ class CircleRender() : RenderBase<Circle>(){
 }
 fun createCircle(_sh : Point3D, _radius : Double, _thickness : Double,
                  _color : Color4F = Color4F(),
-                 _layer : Double) : Option<Circle> {
+                 _layer : Double) : Option<ShapeWrapper<Circle>> {
     return if(_thickness < 0.005 || _radius < 0.01) None
-    else  Some(Circle(origin = _sh, thickness = _thickness,radius = _radius,
-        layer = _layer,color = _color))
+    else  Some(ShapeWrapper(
+        shape = Circle(origin = _sh, thickness = _thickness,radius = _radius, layer = _layer,color = _color),
+        color4f = _color,
+        shift = _sh))
 }
-
 data class Circle(val origin : Point3D,
                   val radius : Double,
                   val thickness : Double,
