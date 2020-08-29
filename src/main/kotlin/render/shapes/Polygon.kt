@@ -69,7 +69,7 @@ class Polygon(
     pts: Array<Point3D>,
     color: Color4F,
     layer: Double = 1.0
-) : Shape(color) {
+) : ShapeWrapper(color) {
     override val points  : Array<Point3D> = pts
     val textureBuffer =  // (number of coordinate values * 4 bytes per float)
         ByteBuffer.allocateDirect(points.size * 2 * 4).run {
@@ -85,7 +85,7 @@ class Polygon(
         }
     }
     init {
-        this.layer = layer
+        this.layer = layer.toInt()
         this.shift = shift
         doInit()
     }
@@ -143,7 +143,7 @@ class PolygonRender : RenderBase<Polygon>() {
                   float a = distance(vec2(0.0, 0.0), v_TexCoordinate);
                   //if(a <= 0.3) discard;
                   gl_FragColor = vColor;
-                  gl_FragColor.a = a;
+                  //gl_FragColor.a = a;
                 }
     """
 

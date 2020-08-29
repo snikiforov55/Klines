@@ -1,17 +1,17 @@
 package render.shapes
 
+import arrow.core.None
+import arrow.core.Option
+import arrow.core.Some
 import com.jogamp.opengl.GL
 import com.jogamp.opengl.GL2
 import com.jogamp.opengl.GL2ES2.*
 import com.jogamp.opengl.GLES2
-import render.base.Color4F
-import render.base.Point3D
-import render.base.RenderBase
-import render.base.Shape
+import render.base.*
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-class CircleRender() : RenderBase<Circle>(){
+class CircleRender() : RenderBase<ShapeWrapper<Circle>>(){
     /**
      * Vertex Shader
      */
@@ -89,7 +89,7 @@ class CircleRender() : RenderBase<Circle>(){
                 position(0)
             }
         }
-    override fun draw(gl : GL2, mvpMatrix: FloatArray, shape : Circle, isShadow : Int) {
+    override fun draw(gl : GL2, mvpMatrix: FloatArray, shapeWrapper : ShapeWrapper<Circle>, isShadow : Int) {
         // get handle to vertex shader's vPosition member
         gl.glGetAttribLocation(mProgram, "vPosition").also { pos ->
 
@@ -103,7 +103,7 @@ class CircleRender() : RenderBase<Circle>(){
                 GL_FLOAT,
                 false,
                 vertexStride,
-                shape.vertexBuffer()
+                shapeWrapper.vertexBuffer()
             )
             gl.glGetAttribLocation(mProgram, "a_TexCoordinate").also { th ->
 
@@ -122,18 +122,18 @@ class CircleRender() : RenderBase<Circle>(){
                 // get handle to fragment shader's vColor member
                 mColorHandle = gl.glGetUniformLocation(mProgram, "vColor").also { colorHandle ->
                     // Set color for drawing the triangle
-                    gl.glUniform4fv(colorHandle, 1, shape.colorBuffer(), 0)
+                    gl.glUniform4fv(colorHandle, 1, shapeWrapper.colorBuffer(), 0)
                 }
                 gl.glGetUniformLocation(mProgram, "a_RadiusThickness").also { r ->
                     gl.glEnableVertexAttribArray(r)
-                    gl.glUniform2f(r, shape.radius().toFloat(), shape.thickness().toFloat())
+                    gl.glUniform2f(r, shapeWrapper.shape.radius.toFloat(), shapeWrapper.shape.thickness.toFloat())
                 }
                 mModelMatrix.loadIdentity()
                 mTranslateMatrix.loadIdentity()
                 mTranslateMatrix.translate(
-                    shape.shift().x.toFloat(),
-                    shape.shift().y.toFloat(),
-                    shape.shift().z.toFloat()
+                    shapeWrapper.shift().x.toFloat(),
+                    shapeWrapper.shift().y.toFloat(),
+                    shapeWrapper.shift().z.toFloat()
                 )
                 mModelMatrix.multMatrix(mvpMatrix)
                 mModelMatrix.multMatrix(mTranslateMatrix)
@@ -149,55 +149,33 @@ class CircleRender() : RenderBase<Circle>(){
                 gl.glEnable(GLES2.GL_DEPTH_TEST)
                 gl.glFrontFace(GL.GL_CW)
                 // Draw the triangle
-                gl.glDrawArrays(GL_TRIANGLES, 0, shape.vertexCount())
+                gl.glDrawArrays(GL_TRIANGLES, 0, shapeWrapper.vertexCount())
                 gl.glDisableVertexAttribArray(th)
                 gl.glDisableVertexAttribArray(pos)
             }
         }
     }
 }
+fun createCircle(_sh : Point3D, _radius : Double, _thickness : Double,
+                 _color : Color4F = Color4F(),
+                 _layer : Double) : Option<Circle> {
+    return if(_thickness < 0.005 || _radius < 0.01) None
+    else  Some(Circle(origin = _sh, thickness = _thickness,radius = _radius,
+        layer = _layer,color = _color))
+}
 
-class Circle : Shape{
-    private var radius      : Double = 1.0
-    private var thickness   : Double = 1.0
-
-    override var points : Array<Point3D> =  arrayOf(
-        Point3D(-radius, -radius, 0.0), // bottom right
-        Point3D(-radius, radius, 0.0), // top left
-        Point3D( radius, -radius, 0.0), // bottom left
-        Point3D( radius, -radius, 0.0), // bottom right
-        Point3D(-radius, radius, 0.0), // top right
-        Point3D( radius, radius, 0.0)  // top left
+data class Circle(val origin : Point3D,
+                  val radius : Double,
+                  val thickness : Double,
+                  val color : Color4F = Color4F(),
+                  val layer : Double = 0.0 ) : Shape(), ShapeInterface {
+    private val points : Array<Point3D> = arrayOf(
+        Point3D(-radius, -radius, layer), // bottom right
+        Point3D(-radius,  radius, layer), // top left
+        Point3D( radius, -radius, layer), // bottom left
+        Point3D( radius, -radius, layer), // bottom right
+        Point3D(-radius,  radius, layer), // top right
+        Point3D( radius,  radius, layer)  // top left
     )
-    init {
-        doInit()
-    }
-    constructor(_radius : Double, _thickness : Double, _color : Color4F = Color4F(), _layer : Double = 0.0){
-        thickness = _thickness
-        layer = _layer
-        setRadius(_radius)
-        setColor(_color.r, _color.g, _color.b, _color.a)
-
-    }
-    constructor(sh : Point3D, _radius : Double, _thickness : Double, _color : Color4F = Color4F(), _layer : Double = 0.0){
-        thickness = _thickness
-        layer = _layer
-        shift = sh
-        setRadius(_radius)
-        setColor(_color.r, _color.g, _color.b, _color.a)
-    }
-    fun thickness() : Double = thickness
-    fun radius() : Double = radius
-    fun setRadius(_r : Double){
-        radius = _r
-        points = arrayOf(
-            Point3D(-radius, -radius, layer), // bottom right
-            Point3D(-radius, radius, layer), // top left
-            Point3D( radius, -radius, layer), // bottom left
-            Point3D( radius, -radius, layer), // bottom right
-            Point3D(-radius, radius, layer), // top right
-            Point3D( radius, radius, layer)  // top left
-        )
-        doInit()
-    }
+    override fun points() = points
 }

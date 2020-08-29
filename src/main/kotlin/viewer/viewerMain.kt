@@ -35,26 +35,26 @@ class Viewer : GLEventListener, KeyListener {
     private val mViewMatrix       = Matrix4()
     private val mMVPMatrix        = Matrix4()
 
-    private val triangleShapes : Array<TriangleShape> = arrayOf(
-        TriangleShape(Point3D(0.50, 0.50, 0.0),
+    private val triangleShapes : Array<TriangleShapeWrapper> = arrayOf(
+        TriangleShapeWrapper(Point3D(0.50, 0.50, 0.0),
             Point3D(-0.2,-0.15, 0.0),
             Point3D( 0.0, 0.3, 0.0),
             Point3D( 0.2,-0.1, 0.0),
             Color4F( 0.8f,0.1f,0.1f,1.0f),
             4.0),
-        TriangleShape(Point3D(0.48, 0.48, 0.0),
+        TriangleShapeWrapper(Point3D(0.48, 0.48, 0.0),
             Point3D(-0.2,-0.15, 0.0),
             Point3D( 0.0, 0.3, 0.0),
             Point3D( 0.2,-0.1, 0.0),
             Color4F( 0.5f,0.1f,0.1f,1.0f),
             3.0),
-        TriangleShape(Point3D(0.46, 0.46, 0.0),
+        TriangleShapeWrapper(Point3D(0.46, 0.46, 0.0),
             Point3D(-0.2,-0.15, 0.0),
             Point3D( 0.0, 0.3, 0.0),
             Point3D( 0.2,-0.1, 0.0),
             Color4F( 0.3f,0.1f,0.1f,1.0f),
             2.0),
-        TriangleShape(Point3D(0.44, 0.44, 0.0),
+        TriangleShapeWrapper(Point3D(0.44, 0.44, 0.0),
             Point3D(-0.2,-0.15, 0.0),
             Point3D( 0.0, 0.3, 0.0),
             Point3D( 0.2,-0.1, 0.0),
@@ -62,12 +62,12 @@ class Viewer : GLEventListener, KeyListener {
             1.0)
     )
     private val circles = arrayOf(
-        Circle(Point3D(-0.60,-0.03, 0.0),0.1, 0.08, Color4F(0.5f, 0.2f, 0.8f, 1.0f), 1.0),
-        Circle(Point3D(-0.63,-0.03, 0.0),0.1, 0.08, Color4F(0.5f, 0.2f, 0.6f, 1.0f), 2.0),
-        Circle(Point3D(-0.66,-0.06, 0.0),0.1, 0.08, Color4F(0.5f, 0.2f, 0.4f, 1.0f), 3.0),
-        Circle(Point3D(-0.69,-0.09, 0.0),0.1, 0.08, Color4F(0.5f, 0.2f, 0.2f, 1.0f), 4.0)
+        createCircle(Point3D(-0.60,-0.03, 0.0),0.1, 0.08, Color4F(0.5f, 0.2f, 0.8f, 1.0f), 1.0),
+        createCircle(Point3D(-0.63,-0.03, 0.0),0.1, 0.08, Color4F(0.5f, 0.2f, 0.6f, 1.0f), 2.0),
+        createCircle(Point3D(-0.66,-0.06, 0.0),0.1, 0.08, Color4F(0.5f, 0.2f, 0.4f, 1.0f), 3.0),
+        createCircle(Point3D(-0.69,-0.09, 0.0),0.1, 0.08, Color4F(0.5f, 0.2f, 0.2f, 1.0f), 4.0)
         )
-    private val center = Circle(Point3D(-0.00,-0.00, 0.0),0.08, 0.02, Color4F(0.5f, 0.5f, 0.5f, 1.0f), 1.0)
+    private val center = createCircle(Point3D(-0.00,-0.00, 0.0),0.08, 0.02, Color4F(0.5f, 0.5f, 0.5f, 1.0f), 1.0)
     private val lines = arrayOf(
         createLine(0.0, 0.1,  0.0,  0.5, 0.015, 9.0, Color4F(0.6f, 0.9f, 0.1f, 1.0f)),
         createLine(0.1, 0.1,  0.2,  0.4, 0.010, 8.0, Color4F(0.1f, 0.7f, 0.1f, 1.0f)),
@@ -192,12 +192,8 @@ class Viewer : GLEventListener, KeyListener {
             triangleShapes.forEach { t -> triangleRender.draw(gl = gl, mvpMatrix = mMVPMatrix.matrix, shape = t) }
 
             circleRender.useProgram(gl)
-            circles.forEach { c ->
-                //val sh = c.shift()
-                //c.move(Point3D(sh.x + shift_x, sh.y + shift_y, sh.z))
-                circleRender.draw(gl = gl, mvpMatrix = mMVPMatrix.matrix, shape = c)
-            }
-            circleRender.draw(gl = gl, mvpMatrix = mMVPMatrix.matrix, shape = center)
+            circles.forEach { c -> c.map{ cc->circleRender.draw(gl = gl, mvpMatrix = mMVPMatrix.matrix, shapeWrapper = cc)}}
+            center.map{c->circleRender.draw(gl = gl, mvpMatrix = mMVPMatrix.matrix, shapeWrapper = c)}
 
             polygonRender.useProgram(gl)
             polygons.forEach {polygon->polygon.map{ p->polygonRender.draw(gl, mMVPMatrix.matrix, p) }}

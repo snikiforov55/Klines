@@ -9,7 +9,7 @@ import com.jogamp.opengl.math.Matrix4
 import render.base.Color4F
 import render.base.Point3D
 import render.base.RenderBase
-import render.base.Shape
+import render.base.ShapeWrapper
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.*
@@ -225,7 +225,7 @@ fun createLine(_startX: Double, _startY: Double, _endX : Double, _endY : Double,
         Point3D(x = thickness,  y =       dx, z = _layer)  // top right
     )
 
-    return Line(points, thickness, r, angle, Point3D(_startX, _startY, _layer), _color)
+    return Line(points, thickness, r, angle, Point3D(_startX, _startY, _layer), _layer.toInt(), _color)
 }
 
 class Line(override val points : Array<Point3D>,
@@ -233,7 +233,8 @@ class Line(override val points : Array<Point3D>,
            private var r : Double = 0.1,
            private var angle : Double = 0.0,
            private var start : Point3D,
-           _c : Color4F) : Shape(color4f = _c) {
+           _layer : Int,
+           _c : Color4F) : ShapeWrapper(color4f = _c) {
 
     fun thickness() = thickness
     fun r() = r
@@ -242,6 +243,7 @@ class Line(override val points : Array<Point3D>,
     fun start() = start
 
     init {
+        layer = _layer
         doInit()
     }
 }

@@ -4,13 +4,12 @@ package render.base
 import com.jogamp.opengl.GL
 import com.jogamp.opengl.GL2
 import com.jogamp.opengl.GLES3.*
-import com.jogamp.opengl.GL3
 import com.jogamp.opengl.GLES2
 import com.jogamp.opengl.math.Matrix4
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
 
-abstract class RenderBase<S : ShapeInterface>() {
+abstract class RenderBase<S : ShapeWrapperInterface>() {
 
     protected   var mProgram: Int =0
     var vertexShader: Int = 0
@@ -24,6 +23,7 @@ abstract class RenderBase<S : ShapeInterface>() {
     protected var mMVPMatrixHandle: Int = 0
     protected var mTranslateMatrix: Matrix4 = Matrix4()
     protected var mModelMatrix : Matrix4 = Matrix4()
+    
     open protected val vertexShaderCode = """
         uniform mat4 uMVPMatrix;
         attribute vec4 vPosition;
