@@ -11,7 +11,7 @@ import render.base.*
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-class CircleRender() : RenderBase<ShapeWrapper<Circle>>(){
+class CircleRender() : RenderBase<Circle>(){
     /**
      * Vertex Shader
      */

@@ -9,7 +9,7 @@ import com.jogamp.opengl.math.Matrix4
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
 
-abstract class RenderBase<S : ShapeWrapperInterface>() {
+abstract class RenderBase<S : ShapeInterface>() {
 
     protected   var mProgram: Int =0
     var vertexShader: Int = 0
@@ -108,7 +108,7 @@ abstract class RenderBase<S : ShapeWrapperInterface>() {
             gl.glUseProgram(mProgram)
         }
     }
-    open fun draw(gl : GL2, mvpMatrix: FloatArray, shape : S, isShadow : Int = 0) {
+    open fun draw(gl : GL2, mvpMatrix: FloatArray, shape : ShapeWrapper<S>, isShadow : Int = 0) {
 
         // get handle to vertex shader's vPosition member
         gl.glGetAttribLocation(mProgram, "vPosition").also {

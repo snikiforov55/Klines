@@ -6,10 +6,7 @@ import com.jogamp.opengl.GL2
 import com.jogamp.opengl.GL2ES2
 import com.jogamp.opengl.GLES2
 import com.jogamp.opengl.math.Matrix4
-import render.base.Color4F
-import render.base.Point3D
-import render.base.RenderBase
-import render.base.ShapeWrapper
+import render.base.*
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.*
@@ -102,7 +99,7 @@ class LineRender : RenderBase<Line>(){
                 position(0)
             }
         }
-    override fun draw(gl : GL2, mvpMatrix: FloatArray, shape : Line, isShadow : Int) {
+    override fun draw(gl : GL2, mvpMatrix: FloatArray, shape : ShapeWrapper<Line>, isShadow : Int) {
         // get handle to vertex shader's vPosition member
         gl.glGetAttribLocation(mProgram, "vPosition").also { pos ->
 
@@ -228,13 +225,48 @@ fun createLine(_startX: Double, _startY: Double, _endX : Double, _endY : Double,
     return Line(points, thickness, r, angle, Point3D(_startX, _startY, _layer), _layer.toInt(), _color)
 }
 
-class Line(override val points : Array<Point3D>,
-           private var thickness : Double = 0.01,
-           private var r : Double = 0.1,
-           private var angle : Double = 0.0,
-           private var start : Point3D,
-           _layer : Int,
-           _c : Color4F) : ShapeWrapper(color4f = _c) {
+data class Line(val startX: Double, val startY: Double, val endX : Double, val endY : Double,
+                val thickness : Double = 0.01,
+                val layer : Int,
+                val color : Color4F) : Shape(), ShapeInterface {
+    private var start : Point3D = Point3D(startX, startY, layer.toDouble())
+    val r = max(0.001, sqrt( (endX - startX)*(endX - startX) + (endY - startY)*(endY - startY)))
+    val thicknessActual = min(r/2.0, thickness)
+    var angle = {
+        val aa = -acos((endY - startY) / r)
+        if (endX - startX < 0.0) {
+            -aa
+        } else {
+            aa
+        }
+    }.invoke()
+    val points : Array<Point3D> = {
+        val dx = thickness / 2.0
+        val z = layer.toDouble()
+        arrayOf(
+            // Top part
+            Point3D(x = 0.0,        y =    dx+r, z = z), // bottom left
+            Point3D(x = 0.0,        y = dx+dx+r, z = z), // top left
+            Point3D(x = thickness,  y =    dx+r, z = z), // bottom right
+            Point3D(x = thickness,  y =    dx+r, z = z), // bottom right
+            Point3D(x = 0.0,        y = dx+dx+r, z = z), // top right
+            Point3D(x = thickness,  y = dx+dx+r, z = z), // top left
+            // Main line
+            Point3D(x = 0.0,        y =       dx, z = z), // bottom left
+            Point3D(x = 0.0,        y =   dx + r, z = z), // top left
+            Point3D(x = thickness,  y =       dx, z = z), // bottom right
+            Point3D(x = thickness,  y =       dx, z = z), // bottom right
+            Point3D(x = 0.0,        y =     dx+r, z = z), // top right
+            Point3D(x = thickness,  y =     dx+r, z = z),  // top left
+            // Bottom part
+            Point3D(x = 0.0,        y =      0.0, z = z), // bottom left
+            Point3D(x = 0.0,        y =       dx, z = z), // top left
+            Point3D(x = thickness,  y =      0.0, z = z), // bottom right
+            Point3D(x = thickness,  y =      0.0, z = z), // bottom right
+            Point3D(x = 0.0,        y =       dx, z = z), // top left
+            Point3D(x = thickness,  y =       dx, z = z)  // top right
+        )
+    }.invoke()
 
     fun thickness() = thickness
     fun r() = r
