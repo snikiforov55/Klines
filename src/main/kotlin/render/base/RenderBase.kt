@@ -80,7 +80,7 @@ abstract class RenderBase<S : ShapeInterface>() {
              gl.glAttachShader(it, fragmentShader)
              // creates OpenGL ES program executables
              gl.glLinkProgram(it)
-             var res = IntArray(1)
+             val res = IntArray(1)
              res[0] = 255
              gl.glGetProgramiv(it, GL_LINK_STATUS, res, 0)
              if(res[0] == 0){
@@ -108,7 +108,7 @@ abstract class RenderBase<S : ShapeInterface>() {
             gl.glUseProgram(mProgram)
         }
     }
-    open fun draw(gl : GL2, mvpMatrix: FloatArray, shape : ShapeWrapper<S>, isShadow : Int = 0) {
+    open fun draw(gl : GL2, mvpMatrix: FloatArray, figure : Figure<S>, isShadow : Int = 0) {
 
         // get handle to vertex shader's vPosition member
         gl.glGetAttribLocation(mProgram, "vPosition").also {
@@ -123,19 +123,19 @@ abstract class RenderBase<S : ShapeInterface>() {
                 GL_FLOAT,
                 false,
                 vertexStride,
-                shape.vertexBuffer()
+                figure.vertexBuffer()
             )
             // get handle to fragment shader's vColor member
             mColorHandle = gl.glGetUniformLocation(mProgram, "vColor").also { colorHandle ->
                 // Set color for drawing the triangle
-                gl.glUniform4fv(colorHandle, 1, shape.colorBuffer(), 0)
+                gl.glUniform4fv(colorHandle, 1, figure.colorBuffer(), 0)
             }
             mModelMatrix.loadIdentity()
             mTranslateMatrix.loadIdentity()
             mTranslateMatrix.translate(
-                shape.shift().x.toFloat(),
-                shape.shift().y.toFloat(),
-                shape.shift().z.toFloat())
+                figure.shift().x.toFloat(),
+                figure.shift().y.toFloat(),
+                figure.shift().z.toFloat())
             mModelMatrix.multMatrix(mvpMatrix)
             mModelMatrix.multMatrix(mTranslateMatrix)
 
@@ -150,7 +150,7 @@ abstract class RenderBase<S : ShapeInterface>() {
             gl.glBlendFunc(GLES2.GL_SRC_ALPHA, GLES2.GL_ONE_MINUS_SRC_ALPHA)
             gl.glFrontFace(GL.GL_CW)
             // Draw the triangle
-            gl.glDrawArrays(GL_TRIANGLES, 0, shape.vertexCount())
+            gl.glDrawArrays(GL_TRIANGLES, 0, figure.vertexCount())
             // Disable vertex array
             gl.glDisableVertexAttribArray(it)
         }

@@ -7,7 +7,7 @@ import render.shapes.createLine
 
 class LineTest {
 
-    val line = createLine(0.0, 0.0, 0.0, 0.5, 0.1, 1.0, Color4F(1.0f,1.0f,1.0f,1.0f))
+    val line = createLine(0.0, 0.0, 0.0, 0.5, 0.1, 1, Color4F(1.0f,1.0f,1.0f,1.0f))
 
     @Test
     fun flatten() {

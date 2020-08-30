@@ -3,11 +3,11 @@ package render
 import render.shapes.Circle
 import render.base.Point3D
 import org.junit.Test
-import render.base.ShapeWrapper
+import render.base.Figure
 
 class CircleTest {
 
-    val circle = ShapeWrapper(Circle(origin = Point3D(0.0,0.0,0.0), radius = 0.2, thickness = 0.05))
+    val circle = Figure(Circle(origin = Point3D(0.0,0.0,0.0), radius = 0.2, thickness = 0.05))
 
     @Test
     fun move() {

@@ -11,7 +11,7 @@ import com.jogamp.opengl.math.Matrix4
 import com.jogamp.opengl.util.Animator
 import render.base.Color4F
 import render.base.Point3D
-import render.base.ShapeWrapper
+import render.base.Figure
 import render.shapes.*
 import render.util.Outline
 import kotlin.math.min
@@ -36,53 +36,59 @@ class Viewer : GLEventListener, KeyListener {
     private val mViewMatrix       = Matrix4()
     private val mMVPMatrix        = Matrix4()
 
-    private val triangleShapes : Array<ShapeWrapper<Triangle>> = arrayOf(
-        ShapeWrapper(Triangle(
+    private val triangleShapes : Array<Figure<Triangle>> = arrayOf(
+        Figure(Triangle(
             Point3D(-0.2,-0.15, 0.0),
             Point3D( 0.0, 0.3, 0.0),
             Point3D( 0.2,-0.1, 0.0),
-            4,
-            Color4F( 0.8f,0.1f,0.1f,1.0f)
-            ), shift = Point3D(0.50, 0.50, 0.0)),
-        ShapeWrapper(Triangle(
+            4
+            ),
+            shift = Point3D(0.50, 0.50, 0.0),
+            color4f = Color4F( 0.8f,0.1f,0.1f,1.0f)),
+        Figure(Triangle(
             Point3D(-0.2,-0.15, 0.0),
             Point3D( 0.0, 0.3, 0.0),
             Point3D( 0.2,-0.1, 0.0),
-            3, Color4F( 0.5f,0.1f,0.1f,1.0f)), shift = Point3D(0.48, 0.48, 0.0)),
-        ShapeWrapper(Triangle(
+            3),
+            shift = Point3D(0.48, 0.48, 0.0),
+            color4f = Color4F( 0.5f,0.1f,0.1f,1.0f)),
+        Figure(Triangle(
             Point3D(-0.2,-0.15, 0.0),
             Point3D( 0.0, 0.3, 0.0),
             Point3D( 0.2,-0.1, 0.0),
-            2, Color4F( 0.3f,0.1f,0.1f,1.0f)), shift = Point3D(0.46, 0.46, 0.0)),
-        ShapeWrapper(Triangle(
+            2),
+            shift = Point3D(0.46, 0.46, 0.0),
+            color4f = Color4F( 0.3f,0.1f,0.1f,1.0f)),
+        Figure(Triangle(
             Point3D(-0.2,-0.15, 0.0),
             Point3D( 0.0, 0.3, 0.0),
             Point3D( 0.2,-0.1, 0.0),
-            1,Color4F( 0.15f,0.1f,0.1f,1.0f)),
-            shift = Point3D(0.44, 0.44, 0.0))
+            1),
+            shift = Point3D(0.44, 0.44, 0.0),
+            color4f = Color4F( 0.15f,0.1f,0.1f,1.0f))
     )
-    private val circles : Array<Option<ShapeWrapper<Circle>>> = arrayOf(
-        createCircle(Point3D(-0.60,-0.03, 0.0),0.1, 0.08, Color4F(0.5f, 0.2f, 0.8f, 1.0f), 1.0),
-        createCircle(Point3D(-0.63,-0.03, 0.0),0.1, 0.08, Color4F(0.5f, 0.2f, 0.6f, 1.0f), 2.0),
-        createCircle(Point3D(-0.66,-0.06, 0.0),0.1, 0.08, Color4F(0.5f, 0.2f, 0.4f, 1.0f), 3.0),
-        createCircle(Point3D(-0.69,-0.09, 0.0),0.1, 0.08, Color4F(0.5f, 0.2f, 0.2f, 1.0f), 4.0)
+    private val circles : Array<Option<Figure<Circle>>> = arrayOf(
+        createCircle(Point3D(-0.60,-0.03, 0.0),0.1, 0.08, Color4F(0.5f, 0.2f, 0.8f, 1.0f), 1),
+        createCircle(Point3D(-0.63,-0.03, 0.0),0.1, 0.08, Color4F(0.5f, 0.2f, 0.6f, 1.0f), 2),
+        createCircle(Point3D(-0.66,-0.06, 0.0),0.1, 0.08, Color4F(0.5f, 0.2f, 0.4f, 1.0f), 3),
+        createCircle(Point3D(-0.69,-0.09, 0.0),0.1, 0.08, Color4F(0.5f, 0.2f, 0.2f, 1.0f), 4)
         )
-    private val center = createCircle(Point3D(-0.00,-0.00, 0.0),0.08, 0.02, Color4F(0.5f, 0.5f, 0.5f, 1.0f), 1.0)
-    private val lines : Array<ShapeWrapper<Line>> = arrayOf(
-        createLine(0.0, 0.1,  0.0,  0.5, 0.015, 9.0, Color4F(0.6f, 0.9f, 0.1f, 1.0f)),
-        createLine(0.1, 0.1,  0.2,  0.4, 0.010, 8.0, Color4F(0.1f, 0.7f, 0.1f, 1.0f)),
-        createLine(0.1, 0.0,  0.5,  0.0, 0.015, 6.0, Color4F(0.1f, 0.6f, 0.1f, 1.0f)),
-        createLine(0.1, -0.1,  0.5,  -0.5, 0.020, 10.0, Color4F(0.1f, 0.5f, 0.1f, 1.0f)),
-        createLine(0.0, -0.1,  0.0,  -0.5, 0.015, 4.0, Color4F(0.1f, 0.4f, 0.1f, 1.0f)),
-        createLine(-0.1, -0.1, -0.5, -0.5, 0.005, 3.0, Color4F(0.1f, 0.3f, 0.1f, 1.0f)),
-        createLine(-0.1, 0.0,  -0.5, -0.0, 0.015, 2.0, Color4F(0.1f, 0.2f, 0.1f, 1.0f)),
-        createLine(-0.1, 0.1,  -0.5,  0.5, 0.035, 2.0, Color4F(0.1f, 0.8f, 0.1f, 1.0f))
+    private val center = createCircle(Point3D(-0.00,-0.00, 0.0),0.08, 0.02, Color4F(0.5f, 0.5f, 0.5f, 1.0f), 1)
+    private val lines : Array<Figure<Line>> = arrayOf(
+        createLine(0.0, 0.1,  0.0,  0.5, 0.015, 9, Color4F(0.6f, 0.9f, 0.1f, 1.0f)),
+        createLine(0.1, 0.1,  0.2,  0.4, 0.010, 8, Color4F(0.1f, 0.7f, 0.1f, 1.0f)),
+        createLine(0.1, 0.0,  0.5,  0.0, 0.015, 6, Color4F(0.1f, 0.6f, 0.1f, 1.0f)),
+        createLine(0.1, -0.1,  0.5,  -0.5, 0.020, 10, Color4F(0.1f, 0.5f, 0.1f, 1.0f)),
+        createLine(0.0, -0.1,  0.0,  -0.5, 0.015, 4, Color4F(0.1f, 0.4f, 0.1f, 1.0f)),
+        createLine(-0.1, -0.1, -0.5, -0.5, 0.005, 3, Color4F(0.1f, 0.3f, 0.1f, 1.0f)),
+        createLine(-0.1, 0.0,  -0.5, -0.0, 0.015, 2, Color4F(0.1f, 0.2f, 0.1f, 1.0f)),
+        createLine(-0.1, 0.1,  -0.5,  0.5, 0.035, 2, Color4F(0.1f, 0.8f, 0.1f, 1.0f))
     )
-    private val linesHalo : Array<ShapeWrapper<Line>> = arrayOf(
-        createLine(0.7, -0.6,  0.8,  -0.2, 0.06, 1.0, Color4F(0.6f, 0.2f, 0.1f, 1.0f)),
-        createLine(0.6, -0.4,  0.9,  -0.4, 0.06, 1.0, Color4F(0.1f, 0.9f, 0.1f, 1.0f)),
-        createLine(0.7, -0.6,  0.6,  -0.2, 0.06, 1.0, Color4F(0.3f, 0.3f, 0.7f, 1.0f)),
-        createLine(0.4, -0.8,  0.4,  -0.0, 0.06, 3.0, Color4F(0.3f, 0.3f, 0.7f, 1.0f))
+    private val linesHalo : Array<Figure<Line>> = arrayOf(
+        createLine(0.7, -0.6,  0.8,  -0.2, 0.06, 1, Color4F(0.6f, 0.2f, 0.1f, 1.0f)),
+        createLine(0.6, -0.4,  0.9,  -0.4, 0.06, 1, Color4F(0.1f, 0.9f, 0.1f, 1.0f)),
+        createLine(0.7, -0.6,  0.6,  -0.2, 0.06, 1, Color4F(0.3f, 0.3f, 0.7f, 1.0f)),
+        createLine(0.4, -0.8,  0.4,  -0.0, 0.06, 3, Color4F(0.3f, 0.3f, 0.7f, 1.0f))
     )
     private val polygons = arrayOf(
 
@@ -93,7 +99,7 @@ class Viewer : GLEventListener, KeyListener {
                 Point3D(-0.7, 0.2, 1.0),
                 Point3D(-0.6, 0.1, 1.0),
                 Point3D(-0.6, 0.0, 1.0)
-            ), Color4F(0.6f, 0.2f, 0.1f, 1.0f), 1.0
+            ), Color4F(0.6f, 0.2f, 0.1f, 1.0f), 1
         ),
         createPolygon(
             Point3D(0.0, 0.6, 1.0),
@@ -105,7 +111,7 @@ class Viewer : GLEventListener, KeyListener {
                 Point3D(0.101, 0.1, 1.0),
                 Point3D(0.2, 0.1, 1.0),
                 Point3D(0.2, 0.0, 1.0)
-                ), Color4F(0.2f, 0.4f, 0.1f, 1.0f), 1.0
+                ), Color4F(0.2f, 0.4f, 0.1f, 1.0f), 1
         )
     )
     private var shift_x : Double = 0.0
@@ -189,11 +195,11 @@ class Viewer : GLEventListener, KeyListener {
             glClear(GL2.GL_DEPTH_BUFFER_BIT or GL2.GL_COLOR_BUFFER_BIT or GL2.GL_STENCIL_BUFFER_BIT)
 
             triangleRender.useProgram(gl)
-            triangleShapes.forEach { t -> triangleRender.draw(gl = gl, mvpMatrix = mMVPMatrix.matrix, shape = t) }
+            triangleShapes.forEach { t -> triangleRender.draw(gl = gl, mvpMatrix = mMVPMatrix.matrix, figure = t) }
 
             circleRender.useProgram(gl)
-            circles.forEach { c -> c.map{ cc->circleRender.draw(gl = gl, mvpMatrix = mMVPMatrix.matrix, shapeWrapper = cc)}}
-            center.map{c->circleRender.draw(gl = gl, mvpMatrix = mMVPMatrix.matrix, shapeWrapper = c)}
+            circles.forEach { c -> c.map{ cc->circleRender.draw(gl = gl, mvpMatrix = mMVPMatrix.matrix, figure = cc)}}
+            center.map{c->circleRender.draw(gl = gl, mvpMatrix = mMVPMatrix.matrix, figure = c)}
 
             polygonRender.useProgram(gl)
             polygons.forEach {polygon->polygon.map{ p->polygonRender.draw(gl, mMVPMatrix.matrix, p) }}
@@ -203,7 +209,7 @@ class Viewer : GLEventListener, KeyListener {
                     {_gl : GL2, _mvp : Matrix4, _shadow : Int ->
                         lineRender.useProgram(_gl)
                         linesHalo.forEach { l ->
-                            lineRender.draw(gl = gl, mvpMatrix = _mvp.matrix, shapeWrapper = l, isShadow = _shadow)
+                            lineRender.draw(gl = gl, mvpMatrix = _mvp.matrix, figure = l, isShadow = _shadow)
                         }
                     }
                 )
@@ -212,7 +218,7 @@ class Viewer : GLEventListener, KeyListener {
             gl.glDisable(GL.GL_STENCIL_TEST)
             //gl.glStencilOp(GL.GL_KEEP, GL.GL_KEEP, GL.GL_REPLACE)
             lineRender.useProgram(gl)
-            lines.forEach { l -> lineRender.draw(gl = gl, mvpMatrix = mMVPMatrix.matrix, shapeWrapper = l) }
+            lines.forEach { l -> lineRender.draw(gl = gl, mvpMatrix = mMVPMatrix.matrix, figure = l) }
         }
     }
 

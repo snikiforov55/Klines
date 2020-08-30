@@ -89,7 +89,7 @@ class CircleRender() : RenderBase<Circle>(){
                 position(0)
             }
         }
-    override fun draw(gl : GL2, mvpMatrix: FloatArray, shapeWrapper : ShapeWrapper<Circle>, isShadow : Int) {
+    override fun draw(gl : GL2, mvpMatrix: FloatArray, figure : Figure<Circle>, isShadow : Int) {
         // get handle to vertex shader's vPosition member
         gl.glGetAttribLocation(mProgram, "vPosition").also { pos ->
 
@@ -103,7 +103,7 @@ class CircleRender() : RenderBase<Circle>(){
                 GL_FLOAT,
                 false,
                 vertexStride,
-                shapeWrapper.vertexBuffer()
+                figure.vertexBuffer()
             )
             gl.glGetAttribLocation(mProgram, "a_TexCoordinate").also { th ->
 
@@ -122,18 +122,18 @@ class CircleRender() : RenderBase<Circle>(){
                 // get handle to fragment shader's vColor member
                 mColorHandle = gl.glGetUniformLocation(mProgram, "vColor").also { colorHandle ->
                     // Set color for drawing the triangle
-                    gl.glUniform4fv(colorHandle, 1, shapeWrapper.colorBuffer(), 0)
+                    gl.glUniform4fv(colorHandle, 1, figure.colorBuffer(), 0)
                 }
                 gl.glGetUniformLocation(mProgram, "a_RadiusThickness").also { r ->
                     gl.glEnableVertexAttribArray(r)
-                    gl.glUniform2f(r, shapeWrapper.shape.radius.toFloat(), shapeWrapper.shape.thickness.toFloat())
+                    gl.glUniform2f(r, figure.shape.radius.toFloat(), figure.shape.thickness.toFloat())
                 }
                 mModelMatrix.loadIdentity()
                 mTranslateMatrix.loadIdentity()
                 mTranslateMatrix.translate(
-                    shapeWrapper.shift().x.toFloat(),
-                    shapeWrapper.shift().y.toFloat(),
-                    shapeWrapper.shift().z.toFloat()
+                    figure.shift().x.toFloat(),
+                    figure.shift().y.toFloat(),
+                    figure.shift().z.toFloat()
                 )
                 mModelMatrix.multMatrix(mvpMatrix)
                 mModelMatrix.multMatrix(mTranslateMatrix)
@@ -149,7 +149,7 @@ class CircleRender() : RenderBase<Circle>(){
                 gl.glEnable(GLES2.GL_DEPTH_TEST)
                 gl.glFrontFace(GL.GL_CW)
                 // Draw the triangle
-                gl.glDrawArrays(GL_TRIANGLES, 0, shapeWrapper.vertexCount())
+                gl.glDrawArrays(GL_TRIANGLES, 0, figure.vertexCount())
                 gl.glDisableVertexAttribArray(th)
                 gl.glDisableVertexAttribArray(pos)
             }
@@ -158,25 +158,24 @@ class CircleRender() : RenderBase<Circle>(){
 }
 fun createCircle(_sh : Point3D, _radius : Double, _thickness : Double,
                  _color : Color4F = Color4F(),
-                 _layer : Double) : Option<ShapeWrapper<Circle>> {
+                 _layer : Int) : Option<Figure<Circle>> {
     return if(_thickness < 0.005 || _radius < 0.01) None
-    else  Some(ShapeWrapper(
-        shape = Circle(origin = _sh, thickness = _thickness,radius = _radius, layer = _layer,color = _color),
+    else  Some(Figure(
+        shape = Circle(origin = _sh, thickness = _thickness,radius = _radius, layer = _layer),
         color4f = _color,
         shift = _sh))
 }
 data class Circle(val origin : Point3D,
                   val radius : Double,
                   val thickness : Double,
-                  val color : Color4F = Color4F(),
-                  val layer : Double = 0.0 ) : Shape(), ShapeInterface {
+                  val layer : Int = 0 ) : Shape(), ShapeInterface {
     private val points : Array<Point3D> = arrayOf(
-        Point3D(-radius, -radius, layer), // bottom right
-        Point3D(-radius,  radius, layer), // top left
-        Point3D( radius, -radius, layer), // bottom left
-        Point3D( radius, -radius, layer), // bottom right
-        Point3D(-radius,  radius, layer), // top right
-        Point3D( radius,  radius, layer)  // top left
+        Point3D(-radius, -radius, layer.toDouble()), // bottom right
+        Point3D(-radius,  radius, layer.toDouble()), // top left
+        Point3D( radius, -radius, layer.toDouble()), // bottom left
+        Point3D( radius, -radius, layer.toDouble()), // bottom right
+        Point3D(-radius,  radius, layer.toDouble()), // top right
+        Point3D( radius,  radius, layer.toDouble())  // top left
     )
     override fun points() = points
 }

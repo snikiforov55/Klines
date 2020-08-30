@@ -6,7 +6,7 @@ import java.nio.FloatBuffer
 
 
 
-interface ShapeWrapperInterface {
+interface FigureInterface {
     fun move(pos : Point3D)
     fun rotate(deg : Double)
     fun bufferSizeFloat() : Int
@@ -21,28 +21,26 @@ interface ShapeWrapperInterface {
 }
 
 
-class ShapeWrapper<S:ShapeInterface>(val shape: S,
-                                     var shift  : Point3D = Point3D(0.0, 0.0, 0.0),
-                                     var color4f : Color4F = Color4F(0.63671875f, 0.76953125f, 0.22265625f, 1.0f),
-                            private var colorShadow4f: Color4F = Color4F(0.0f,0.0f,0.0f,1.0f)
-): ShapeWrapperInterface {
+class Figure<S:ShapeInterface>(val shape: S,
+                               var shift  : Point3D = Point3D(0.0, 0.0, 0.0),
+                               var color4f : Color4F = Color4F(0.63671875f, 0.76953125f, 0.22265625f, 1.0f),
+                               private var colorShadow4f: Color4F = Color4F(0.0f,0.0f,0.0f,1.0f)
+): FigureInterface {
 
-    private var vertexBuffer : FloatBuffer
-    init {
-        val capacity = shape.points().size * 3 * 4
+    private var vertexBuffer : FloatBuffer =
         // (number of coordinate values * 4 bytes per float)
-        vertexBuffer = ByteBuffer.allocateDirect(capacity).run {
+        ByteBuffer.allocateDirect(shape.points().size * 3 * 4).run {
             // use the device hardware's native byte order
             order(ByteOrder.nativeOrder())
             // create a floating point buffer from the ByteBuffer
             asFloatBuffer().apply {
                 // add the coordinates to the FloatBuffer
-                shape.points().forEach { p -> p.flatten().forEach { p -> put(p.toFloat()) } }
+                shape.points().forEach { pt -> pt.flatten().forEach { p -> put(p.toFloat()) } }
                 // set the buffer to read the first coordinate
                 position(0)
             }
         }
-    }
+
     override fun vertexBuffer() : FloatBuffer = vertexBuffer
     override fun shift() : Point3D = shift
     override fun move(pos : Point3D){shift = pos}

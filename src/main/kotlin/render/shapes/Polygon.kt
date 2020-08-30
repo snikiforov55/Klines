@@ -34,8 +34,8 @@ fun createPolygon(
     shift: Point3D,
     points: Array<Point3D>,
     _color: Color4F,
-    _layer: Double
-) : Option<ShapeWrapper<Polygon>> {
+    _layer: Int
+) : Option<Figure<Polygon>> {
     var tail = points.toMutableList()
     val res = mutableListOf<Triangle>()
     var cycle : Int = tail.size
@@ -60,16 +60,14 @@ fun createPolygon(
         cycle -= 1
     }
     return  if(res.isEmpty())  None
-            else Some(ShapeWrapper( shape = Polygon(shift = shift,
+            else Some(Figure( shape = Polygon(
         points = res.map{t->t.points()}.toTypedArray().flatten().toTypedArray(),
-        color = _color, layer = _layer.toInt()
-    ), color4f = _color))
+        layer = _layer
+    ), color4f = _color, shift = shift))
 }
 
 class Polygon(
-    val shift: Point3D,
     private val points: Array<Point3D>,
-    val color: Color4F,
     val layer: Int = 1
 ) : Shape(), ShapeInterface {
 
@@ -146,7 +144,7 @@ class PolygonRender : RenderBase<Polygon>() {
                 }
     """
 
-    override fun draw(gl : GL2, mvpMatrix: FloatArray, shapeWrapper : ShapeWrapper<Polygon>, isShadow : Int) {
+    override fun draw(gl : GL2, mvpMatrix: FloatArray, figure : Figure<Polygon>, isShadow : Int) {
         // get handle to vertex shader's vPosition member
         gl.glGetAttribLocation(mProgram, "vPosition").also { pos ->
 
@@ -160,7 +158,7 @@ class PolygonRender : RenderBase<Polygon>() {
                 GL2ES2.GL_FLOAT,
                 false,
                 vertexStride,
-                shapeWrapper.vertexBuffer()
+                figure.vertexBuffer()
             )
             gl.glGetAttribLocation(mProgram, "a_TexCoordinate").also { th ->
                 // Enable a handle to the triangle vertices
@@ -172,19 +170,19 @@ class PolygonRender : RenderBase<Polygon>() {
                     GL2ES2.GL_FLOAT,
                     false,
                     (2)*4,//vertexStride,
-                    shapeWrapper.shape.textureBuffer
+                    figure.shape.textureBuffer
                 )
                 // get handle to fragment shader's vColor member
                 mColorHandle = gl.glGetUniformLocation(mProgram, "vColor").also { colorHandle ->
                     // Set color for drawing the triangle
-                    gl.glUniform4fv(colorHandle, 1, shapeWrapper.colorBuffer(), 0)
+                    gl.glUniform4fv(colorHandle, 1, figure.colorBuffer(), 0)
                 }
                 mModelMatrix.loadIdentity()
                 mTranslateMatrix.loadIdentity()
                 mTranslateMatrix.translate(
-                    shapeWrapper.shift().x.toFloat(),
-                    shapeWrapper.shift().y.toFloat(),
-                    shapeWrapper.shift().z.toFloat()
+                    figure.shift().x.toFloat(),
+                    figure.shift().y.toFloat(),
+                    figure.shift().z.toFloat()
                 )
                 mModelMatrix.multMatrix(mvpMatrix)
                 mModelMatrix.multMatrix(mTranslateMatrix)
@@ -200,7 +198,7 @@ class PolygonRender : RenderBase<Polygon>() {
                 gl.glEnable(GLES2.GL_DEPTH_TEST)
                 gl.glFrontFace(GL.GL_CW)
                 // Draw the triangle
-                gl.glDrawArrays(GL2ES2.GL_TRIANGLES, 0, shapeWrapper.vertexCount())
+                gl.glDrawArrays(GL2ES2.GL_TRIANGLES, 0, figure.vertexCount())
                 gl.glDisableVertexAttribArray(th)
                 gl.glDisableVertexAttribArray(pos)
             }

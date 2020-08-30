@@ -9,8 +9,7 @@ class TriangleRender : RenderBase<Triangle>(){
 data class Triangle(val first : Point3D,
                    val second : Point3D,
                    val third : Point3D,
-                   val layer : Int = 1,
-                   val color : Color4F = Color4F()): Shape(), ShapeInterface{
+                   val layer : Int = 1): Shape(), ShapeInterface{
     private val points : Array<Point3D> = arrayOf(first, second, third)
     fun isInner() : Boolean{
         // compute via wedge product, where

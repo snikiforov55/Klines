@@ -99,7 +99,7 @@ class LineRender : RenderBase<Line>(){
                 position(0)
             }
         }
-    override fun draw(gl : GL2, mvpMatrix: FloatArray, shapeWrapper : ShapeWrapper<Line>, isShadow : Int) {
+    override fun draw(gl : GL2, mvpMatrix: FloatArray, figure : Figure<Line>, isShadow : Int) {
         // get handle to vertex shader's vPosition member
         gl.glGetAttribLocation(mProgram, "vPosition").also { pos ->
 
@@ -113,7 +113,7 @@ class LineRender : RenderBase<Line>(){
                 GL2ES2.GL_FLOAT,
                 false,
                 vertexStride,
-                shapeWrapper.vertexBuffer()
+                figure.vertexBuffer()
             )
             gl.glGetAttribLocation(mProgram, "a_TexCoordinate").also { th ->
                 // Enable a handle to the triangle vertices
@@ -130,11 +130,11 @@ class LineRender : RenderBase<Line>(){
                 // get handle to fragment shader's vColor member
                 mColorHandle = gl.glGetUniformLocation(mProgram, "vColor").also { colorHandle ->
                     // Set color for drawing the triangle
-                    gl.glUniform4fv(colorHandle, 1, shapeWrapper.colorBuffer(), 0)
+                    gl.glUniform4fv(colorHandle, 1, figure.colorBuffer(), 0)
                 }
                 gl.glGetUniformLocation(mProgram, "vColorShadow").also { colorHandle ->
                     // Set color for drawing the triangle
-                    gl.glUniform4fv(colorHandle, 1, shapeWrapper.colorShadowBuffer(), 0)
+                    gl.glUniform4fv(colorHandle, 1, figure.colorShadowBuffer(), 0)
                 }
                 gl.glGetUniformLocation(mProgram, "isShadow").also { shadowHandle ->
                     // Set color for drawing the triangle
@@ -142,33 +142,33 @@ class LineRender : RenderBase<Line>(){
                 }
                 gl.glGetUniformLocation(mProgram, "a_RadiusThickness").also { r ->
                     gl.glEnableVertexAttribArray(r)
-                    gl.glUniform2f(r, shapeWrapper.shape.r.toFloat(), shapeWrapper.shape.thickness.toFloat())
+                    gl.glUniform2f(r, figure.shape.r.toFloat(), figure.shape.thickness.toFloat())
                 }
                 mModelMatrix.loadIdentity()
                 mModelMatrix.multMatrix(mvpMatrix)
 
                 val worldMatrix = Matrix4()
                 worldMatrix.loadIdentity()
-                worldMatrix.translate(shapeWrapper.shift().x.toFloat(),shapeWrapper.shift().y.toFloat(),shapeWrapper.shift().z.toFloat())
-                worldMatrix.translate(shapeWrapper.shape.start.x.toFloat(),shapeWrapper.shape.start.y.toFloat(),0.0f)
+                worldMatrix.translate(figure.shift().x.toFloat(),figure.shift().y.toFloat(),figure.shift().z.toFloat())
+                worldMatrix.translate(figure.shape.start.x.toFloat(),figure.shape.start.y.toFloat(),0.0f)
                 mModelMatrix.multMatrix(worldMatrix)
 
-                mModelMatrix.rotate(shapeWrapper.shape.angle.toFloat(), 0.0f, 0.0f, 1.0f)
-                if(isShadow === 1){
+                mModelMatrix.rotate(figure.shape.angle.toFloat(), 0.0f, 0.0f, 1.0f)
+                if(isShadow == 1){
                     val dx = 0.01f
-                    val scaleX = 1.0f + dx/shapeWrapper.shape.thickness.toFloat()
-                    val scaleY = 1.0f + dx/shapeWrapper.shape.r.toFloat()
+                    val scaleX = 1.0f + dx/figure.shape.thickness.toFloat()
+                    val scaleY = 1.0f + dx/figure.shape.r.toFloat()
                     mModelMatrix.translate(
-                        -shapeWrapper.shape.thickness.toFloat() / 2.0f - dx/2.0f,
-                        -shapeWrapper.shape.thickness.toFloat() / 2.0f - dx/2.0f,
+                        -figure.shape.thickness.toFloat() / 2.0f - dx/2.0f,
+                        -figure.shape.thickness.toFloat() / 2.0f - dx/2.0f,
                         0.0f
                     )
                     mModelMatrix.scale(scaleX, scaleY, 1.0f)//(1.2 * shape.thickness()/shape.r()).toFloat(), 1.0f)
 
                 } else {
                     mModelMatrix.translate(
-                        -shapeWrapper.shape.thickness.toFloat() / 2.0f,
-                        -shapeWrapper.shape.thickness.toFloat() / 2.0f,
+                        -figure.shape.thickness.toFloat() / 2.0f,
+                        -figure.shape.thickness.toFloat() / 2.0f,
                         0.0f
                     )
                 }
@@ -181,7 +181,7 @@ class LineRender : RenderBase<Line>(){
                 gl.glEnable(GLES2.GL_CULL_FACE)
                 gl.glFrontFace(GL_CW)
                 // Draw the triangle
-                gl.glDrawArrays(GL2ES2.GL_TRIANGLES, 0, shapeWrapper.vertexCount())
+                gl.glDrawArrays(GL2ES2.GL_TRIANGLES, 0, figure.vertexCount())
                 gl.glDisableVertexAttribArray(th)
                 gl.glDisableVertexAttribArray(pos)
             }
@@ -190,16 +190,15 @@ class LineRender : RenderBase<Line>(){
 }
 
 fun createLine(_startX: Double, _startY: Double, _endX : Double, _endY : Double, _thickness : Double,
-               _layer : Double, _color : Color4F) : ShapeWrapper<Line>{
+               _layer : Int, _color : Color4F) : Figure<Line>{
     val r = max(0.001, length2D(_startX, _startY, _endX, _endY))
-    return ShapeWrapper(shape = Line(_startX, _startY, _endX, _endY, min(r/2.0, _thickness), _layer.toInt(), _color),
+    return Figure(shape = Line(_startX, _startY, _endX, _endY, min(r/2.0, _thickness), _layer),
         color4f = _color)
 }
 
 data class Line(val startX: Double, val startY: Double, val endX : Double, val endY : Double,
                 val thickness : Double = 0.01,
-                val layer : Int,
-                val color : Color4F) : Shape(), ShapeInterface {
+                val layer : Int) : Shape(), ShapeInterface {
     var start : Point3D = Point3D(startX, startY, layer.toDouble())
     val r = max(0.001, length2D(startX, startY, endX, endY))
     var angle = {

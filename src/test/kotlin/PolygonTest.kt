@@ -11,12 +11,10 @@ import render.shapes.createPolygon
 
 class PolygonTest {
 
-    val polygon = Polygon(Point3D(0.0, 0.0, 1.0),
-         arrayOf(Point3D(0.0, 0.0, 0.0),
+    val polygon = Polygon(arrayOf(Point3D(0.0, 0.0, 0.0),
             Point3D(1.0, 0.0, 0.0),
             Point3D(1.0, 1.0, 0.0   )
-        ), Color4F(), 1
-    )
+        ), 1)
 
     val triangle = Triangle(Point3D(0.0, 2.0, 0.0), Point3D(3.0, 4.0, 0.0), Point3D(2.0, 1.0, 0.0))
 
@@ -31,8 +29,7 @@ class PolygonTest {
              arrayOf(Point3D(0.0, 0.0, 0.0),
                 Point3D(1.0, 0.0, 0.0),
                 Point3D(1.0, 1.0, 0.0   )
-            ), Color4F(), 1.0
-        )
+            ), Color4F(), 1 )
         assert(polygon.nonEmpty())
     }
     @Test
@@ -43,7 +40,7 @@ class PolygonTest {
                 Point3D(0.0, 1.0, 0.0),
                 Point3D(1.0, 1.0, 0.0),
                 Point3D(1.0, 0.0, 0.0)
-            ), Color4F(), 1.0
+            ), Color4F(), 1
         )
         assert(polygon.map{p->p.flatten().size == 18}.getOrElse { false })
     }
@@ -56,7 +53,7 @@ class PolygonTest {
                 Point3D(1.0, 2.0, 0.0),
                 Point3D(2.0, 1.0, 0.0),
                 Point3D(2.0, 0.0, 0.0)
-            ), Color4F(), 1.0
+            ), Color4F(), 1
         )
         assert(polygon.map{p->p.flatten().size == 27}.getOrElse { false })
     }
