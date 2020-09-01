@@ -10,7 +10,7 @@ data class Color4F(val r: Float = 0.0f, val g: Float = 0.0f, val b: Float = 0.0f
     fun toArray() = floatArrayOf(r, g, b, a)
 }
 
-class Vector2(val x : Double, val y : Double){
+data class Vector2(val x : Double, val y : Double){
     companion object{
         fun of(b : Point3D, e : Point3D) : Vector2 = Vector2(x = e.x - b.x, y = e.y - b.y)
     }
