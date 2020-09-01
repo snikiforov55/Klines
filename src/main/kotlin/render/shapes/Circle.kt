@@ -169,7 +169,7 @@ data class Circle(val origin : Point3D,
                   val radius : Double,
                   val thickness : Double,
                   val layer : Int = 0 ) : Shape(), ShapeInterface {
-    private val points : Array<Point3D> = arrayOf(
+    private val points : List<Point3D> = listOf(
         Point3D(-radius, -radius, layer.toDouble()), // bottom right
         Point3D(-radius,  radius, layer.toDouble()), // top left
         Point3D( radius, -radius, layer.toDouble()), // bottom left
@@ -177,5 +177,5 @@ data class Circle(val origin : Point3D,
         Point3D(-radius,  radius, layer.toDouble()), // top right
         Point3D( radius,  radius, layer.toDouble())  // top left
     )
-    override fun points() = points
+    override fun points(): List<Point3D> = points
 }

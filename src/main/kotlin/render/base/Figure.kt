@@ -35,7 +35,7 @@ class Figure<S:ShapeInterface>(val shape: S,
             // create a floating point buffer from the ByteBuffer
             asFloatBuffer().apply {
                 // add the coordinates to the FloatBuffer
-                shape.points().forEach { pt -> pt.flatten().forEach { p -> put(p.toFloat()) } }
+                shape.points().map{ pt -> pt.flatten()}.flatten().forEach { p -> put(p.toFloat()) }
                 // set the buffer to read the first coordinate
                 position(0)
             }

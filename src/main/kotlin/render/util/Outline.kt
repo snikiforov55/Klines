@@ -8,12 +8,9 @@ import render.base.Color4F
 import render.base.Program
 import render.base.Shader
 
-class Outline(private val gl : GL2){
+class Outline(gl : GL2){
 
-    private val program : Program
-
-    init {
-        program = Program(gl,
+    private val program : Program = Program(gl,
             arrayOf(
                 Shader(GL2.GL_VERTEX_SHADER,"""
                     uniform mat4 uMVPMatrix;
@@ -30,8 +27,6 @@ class Outline(private val gl : GL2){
                 """)
             )
         )
-    }
-
 fun outline(_gl : GL2, _mvpMatrix : Matrix4, _color : Color4F, _render : (GL2, Matrix4, Int)->Unit){
     _gl.glEnable(GL_DEPTH_TEST)
     _gl.glEnable(GL_STENCIL_TEST)

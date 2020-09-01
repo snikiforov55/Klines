@@ -209,10 +209,10 @@ data class Line(val startX: Double, val startY: Double, val endX : Double, val e
             aa
         }
     }.invoke()
-    private val points : Array<Point3D> = {
+    private val points : List<Point3D> = {
         val dx = thickness / 2.0
         val z = layer.toDouble()
-        arrayOf(
+        listOf(
             // Top part
             Point3D(x = 0.0,        y =    dx+r, z = z), // bottom left
             Point3D(x = 0.0,        y = dx+dx+r, z = z), // top left
@@ -236,5 +236,5 @@ data class Line(val startX: Double, val startY: Double, val endX : Double, val e
             Point3D(x = thickness,  y =       dx, z = z)  // top right
         )
     }.invoke()
-    override fun points() = points
+    override fun points(): List<Point3D> = points
 }

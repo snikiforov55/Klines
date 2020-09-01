@@ -3,5 +3,5 @@ package render.base
 abstract class Shape()
 
 interface ShapeInterface{
-    fun points() : Array<Point3D>
+    fun points(): List<Point3D>
 }

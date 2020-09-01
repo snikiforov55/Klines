@@ -61,13 +61,13 @@ fun createPolygon(
     }
     return  if(res.isEmpty())  None
             else Some(Figure( shape = Polygon(
-        points = res.map{t->t.points()}.toTypedArray().flatten().toTypedArray(),
+        points = res.map{t->t.points()}.flatten(),
         layer = _layer
     ), color4f = _color, shift = shift))
 }
 
 class Polygon(
-    private val points: Array<Point3D>,
+    private val points: List<Point3D>,
     val layer: Int = 1
 ) : Shape(), ShapeInterface {
 
@@ -85,7 +85,7 @@ class Polygon(
         }
     }
 
-    override fun points() = points
+    override fun points(): List<Point3D> = points
 }
 class PolygonRender : RenderBase<Polygon>() {
     /**

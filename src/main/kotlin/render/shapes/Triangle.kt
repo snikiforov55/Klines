@@ -10,7 +10,7 @@ data class Triangle(val first : Point3D,
                    val second : Point3D,
                    val third : Point3D,
                    val layer : Int = 1): Shape(), ShapeInterface{
-    private val points : Array<Point3D> = arrayOf(first, second, third)
+    private val points : List<Point3D> = listOf(first, second, third)
     fun isInner() : Boolean{
         // compute via wedge product, where
         // U/\V = U.x * V.y - U.y * V.x
@@ -21,9 +21,9 @@ data class Triangle(val first : Point3D,
         // http://blackpawn.com/texts/pointinpoly/default.html
         //
         // Compute vectors
-        val v0 = Vector2(first,  third)
-        val v1 = Vector2(first, second)
-        val v2 = Vector2(first,  p)
+        val v0 = Vector2.of(first,  third)
+        val v1 = Vector2.of(first, second)
+        val v2 = Vector2.of(first,  p)
         // Compute dot products
         val dot00 = dot(v0, v0)
         val dot01 = dot(v0, v1)
@@ -37,6 +37,6 @@ data class Triangle(val first : Point3D,
         // Check if point is in triangle
         return (u >= 0) && (v >= 0) && (u + v < 1)
     }
-    override fun points(): Array<Point3D> = points
+    override fun points(): List<Point3D> = points
 }
 

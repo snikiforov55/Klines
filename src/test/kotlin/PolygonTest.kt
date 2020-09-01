@@ -11,7 +11,7 @@ import render.shapes.createPolygon
 
 class PolygonTest {
 
-    val polygon = Polygon(arrayOf(Point3D(0.0, 0.0, 0.0),
+    val polygon = Polygon(listOf(Point3D(0.0, 0.0, 0.0),
             Point3D(1.0, 0.0, 0.0),
             Point3D(1.0, 1.0, 0.0   )
         ), 1)
@@ -105,7 +105,7 @@ class PolygonTest {
         val points = listOf(Point3D(1.0, 1.0, 0.0),
             Point3D(-1.0, 2.0, 0.0),
             Point3D(2.0, 2.0, 0.0))
-        val vect = points.zipWithNext{p1,p2 -> Vector2(p1, p2)}
+        val vect = points.zipWithNext{p1,p2 -> Vector2.of(p1, p2)}
         assert(vect.size == 2)
     }
 }
