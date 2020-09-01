@@ -1,5 +1,7 @@
 package render.shapes
 
+import arrow.core.None
+import arrow.core.Some
 import render.base.*
 
 class TriangleRender : RenderBase<Triangle>(){
@@ -10,6 +12,12 @@ data class Triangle(val first : Point3D,
                    val second : Point3D,
                    val third : Point3D,
                    val layer : Int = 1): Shape(), ShapeInterface{
+    companion object{
+        fun figure( first : Point3D, second : Point3D, third : Point3D, layer : Int, shift : Point3D, color4f : Color4F) =
+            if(length2D(first, second) < 0.001 || length2D(second, third) < 0.001 || length2D(third, first) < 0.001) None
+            else Some(Figure(Triangle(first,second, third, layer),shift,color4f))
+    }
+
     private val points : List<Point3D> = listOf(first, second, third)
     fun isInner() : Boolean{
         // compute via wedge product, where

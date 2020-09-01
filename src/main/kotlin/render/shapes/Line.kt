@@ -1,6 +1,9 @@
 package render.shapes
 
 
+import arrow.core.None
+import arrow.core.Option
+import arrow.core.Some
 import com.jogamp.opengl.GL.GL_CW
 import com.jogamp.opengl.GL2
 import com.jogamp.opengl.GL2ES2
@@ -188,17 +191,18 @@ class LineRender : RenderBase<Line>(){
         }
     }
 }
-
-fun createLine(_startX: Double, _startY: Double, _endX : Double, _endY : Double, _thickness : Double,
-               _layer : Int, _color : Color4F) : Figure<Line>{
-    val r = max(0.001, length2D(_startX, _startY, _endX, _endY))
-    return Figure(shape = Line(_startX, _startY, _endX, _endY, min(r/2.0, _thickness), _layer),
-        color4f = _color)
-}
-
 data class Line(val startX: Double, val startY: Double, val endX : Double, val endY : Double,
                 val thickness : Double = 0.01,
                 val layer : Int) : Shape(), ShapeInterface {
+    companion object{
+        fun figure(_startX: Double, _startY: Double, _endX : Double, _endY : Double, _thickness : Double,
+                  _layer : Int, _color : Color4F) : Option<Figure<Line>> {
+            val r =length2D(_startX, _startY, _endX, _endY)
+            return if(r > 0.001) Some(Figure(shape = Line(_startX, _startY, _endX, _endY, min(r/2.0, _thickness), _layer),
+                color4f = _color))
+            else None
+        }
+    }
     var start : Point3D = Point3D(startX, startY, layer.toDouble())
     val r = max(0.001, length2D(startX, startY, endX, endY))
     var angle = {

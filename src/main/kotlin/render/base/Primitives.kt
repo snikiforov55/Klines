@@ -24,3 +24,5 @@ fun length2D(startX: Double, startY: Double, endX : Double, endY : Double) : Dou
     sqrt( (endX - startX)*(endX - startX) + (endY - startY)*(endY - startY))
 
 
+fun length2D(start: Point3D, end: Point3D) : Double =
+    sqrt( (end.x - start.x)*(end.x - start.x) + (end.y - start.y)*(end.y - start.y))

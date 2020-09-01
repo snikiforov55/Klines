@@ -30,46 +30,43 @@ while true
   if no triangles were made in the above for loop
     break;
  */
-fun createPolygon(
-    shift: Point3D,
-    points: Array<Point3D>,
-    _color: Color4F,
-    _layer: Int
-) : Option<Figure<Polygon>> {
-    var tail = points.toMutableList()
-    val res = mutableListOf<Triangle>()
-    var cycle : Int = tail.size
-    while(tail.size > 2 || cycle < 0){ // Check if there is enough vertexes and if algorithm is not in endless loop
-        val triad = tail.take(3).toTypedArray()
-        val triangle = Triangle(triad[0], triad[1], triad[2])
-        tail = tail.drop(3).toMutableList()
-        val inner = triangle.isInner()
-        val otherNotIn = tail.filter{p -> triangle.belongs(p)}.isEmpty()
-        if(( inner|| tail.isEmpty()) && otherNotIn) {
-            res.add(triangle)
-            if(tail.isNotEmpty()) {
-                tail.add(0, triad.last())
-                tail.add(triad.first())
-            }
-        }
-        else{
-            tail.add(0, triad[2])
-            tail.add(0, triad[1])
-            tail.add(triad[0])
-        }
-        cycle -= 1
-    }
-    return  if(res.isEmpty())  None
-            else Some(Figure( shape = Polygon(
-        points = res.map{t->t.points()}.flatten(),
-        layer = _layer
-    ), color4f = _color, shift = shift))
-}
 
 class Polygon(
     private val points: List<Point3D>,
     val layer: Int = 1
 ) : Shape(), ShapeInterface {
+    companion object{
+        fun figure(shift: Point3D, points: Array<Point3D>, _color: Color4F, _layer: Int) : Option<Figure<Polygon>> {
+            var tail = points.toMutableList()
+            val res = mutableListOf<Triangle>()
+            var cycle : Int = tail.size
+            while(tail.size > 2 || cycle < 0){ // Check if there is enough vertexes and if algorithm is not in endless loop
+                val triad = tail.take(3).toTypedArray()
+                val triangle = Triangle(triad[0], triad[1], triad[2])
+                tail = tail.drop(3).toMutableList()
+                val inner = triangle.isInner()
+                val otherNotIn = tail.filter{p -> triangle.belongs(p)}.isEmpty()
+                if(( inner|| tail.isEmpty()) && otherNotIn) {
+                    res.add(triangle)
+                    if(tail.isNotEmpty()) {
+                        tail.add(0, triad.last())
+                        tail.add(triad.first())
+                    }
+                }
+                else{
+                    tail.add(0, triad[2])
+                    tail.add(0, triad[1])
+                    tail.add(triad[0])
+                }
+                cycle -= 1
+            }
+            return  if(res.isEmpty())  None
+            else Some(Figure( shape = Polygon(
+                points = res.map{t->t.points()}.flatten(),
+                layer = _layer
+            ), color4f = _color, shift = shift))
+        }
+    }
 
     val textureBuffer: FloatBuffer =  // (number of coordinate values * 4 bytes per float)
         ByteBuffer.allocateDirect(points.size * 2 * 4).run {

@@ -7,7 +7,7 @@ import render.base.Color4F
 import render.base.Point3D
 import render.base.Vector2
 import render.shapes.Triangle
-import render.shapes.createPolygon
+
 
 class PolygonTest {
 
@@ -25,7 +25,7 @@ class PolygonTest {
     }
     @Test
     fun simpleTriangle(){
-        val polygon = createPolygon(Point3D(0.0, 0.0, 1.0),
+        val polygon = Polygon.figure(Point3D(0.0, 0.0, 1.0),
              arrayOf(Point3D(0.0, 0.0, 0.0),
                 Point3D(1.0, 0.0, 0.0),
                 Point3D(1.0, 1.0, 0.0   )
@@ -34,7 +34,7 @@ class PolygonTest {
     }
     @Test
     fun simpleSquare(){
-        val polygon = createPolygon(Point3D(0.0, 0.0, 1.0),
+        val polygon = Polygon.figure(Point3D(0.0, 0.0, 1.0),
              arrayOf(
                 Point3D(0.0, 0.0, 0.0),
                 Point3D(0.0, 1.0, 0.0),
@@ -46,7 +46,7 @@ class PolygonTest {
     }
     @Test
     fun house(){
-        val polygon = createPolygon(Point3D(0.0, 0.0, 1.0),
+        val polygon = Polygon.figure(Point3D(0.0, 0.0, 1.0),
              arrayOf(
                 Point3D(0.0, 0.0, 0.0),
                 Point3D(0.0, 1.0, 0.0),

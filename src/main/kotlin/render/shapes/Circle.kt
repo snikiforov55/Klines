@@ -156,19 +156,21 @@ class CircleRender() : RenderBase<Circle>(){
         }
     }
 }
-fun createCircle(_sh : Point3D, _radius : Double, _thickness : Double,
-                 _color : Color4F = Color4F(),
-                 _layer : Int) : Option<Figure<Circle>> {
-    return if(_thickness < 0.005 || _radius < 0.01) None
-    else  Some(Figure(
-        shape = Circle(origin = _sh, thickness = _thickness,radius = _radius, layer = _layer),
-        color4f = _color,
-        shift = _sh))
-}
 data class Circle(val origin : Point3D,
                   val radius : Double,
                   val thickness : Double,
                   val layer : Int = 0 ) : Shape(), ShapeInterface {
+    companion object{
+        fun figure(_sh : Point3D, _radius : Double, _thickness : Double,
+                  _color : Color4F = Color4F(),
+                  _layer : Int) : Option<Figure<Circle>> {
+            return if(_thickness < 0.005 || _radius < 0.01) None
+            else  Some(Figure(
+                shape = Circle(origin = _sh, thickness = _thickness,radius = _radius, layer = _layer),
+                color4f = _color,
+                shift = _sh))
+        }
+    }
     private val points : List<Point3D> = listOf(
         Point3D(-radius, -radius, layer.toDouble()), // bottom right
         Point3D(-radius,  radius, layer.toDouble()), // top left
